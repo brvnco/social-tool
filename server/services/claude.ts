@@ -1,13 +1,65 @@
-import Anthropic from '@anthropic-ai/sdk';
+import { generateText } from 'ai';
+import { anthropic } from '@ai-sdk/anthropic';
+import { openai } from '@ai-sdk/openai';
+import { google } from '@ai-sdk/google';
 import fs from 'fs';
 import path from 'path';
+import { getSetting } from '../db';
 
-let _client: Anthropic | null = null;
-function getClient(): Anthropic {
-  if (!_client) {
-    _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+// ── Model registry ──
+
+export interface ModelOption {
+  id: string;
+  label: string;
+  provider: 'anthropic' | 'openai' | 'google';
+  supportsWebSearch: boolean;
+  costTier: 'low' | 'medium' | 'high';
+}
+
+export const AVAILABLE_MODELS: ModelOption[] = [
+  // Anthropic
+  { id: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5', provider: 'anthropic', supportsWebSearch: true, costTier: 'low' },
+  { id: 'claude-sonnet-4-6-20250514', label: 'Claude Sonnet 4.6', provider: 'anthropic', supportsWebSearch: true, costTier: 'medium' },
+  { id: 'claude-opus-4-0-20250514', label: 'Claude Opus 4', provider: 'anthropic', supportsWebSearch: true, costTier: 'high' },
+  // OpenAI
+  { id: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai', supportsWebSearch: false, costTier: 'low' },
+  { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai', supportsWebSearch: false, costTier: 'medium' },
+  { id: 'o3-mini', label: 'o3-mini', provider: 'openai', supportsWebSearch: false, costTier: 'medium' },
+  // Google
+  { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', provider: 'google', supportsWebSearch: true, costTier: 'low' },
+  { id: 'gemini-2.5-pro-preview-06-05', label: 'Gemini 2.5 Pro', provider: 'google', supportsWebSearch: true, costTier: 'medium' },
+];
+
+function getModelInstance(modelId: string) {
+  const model = AVAILABLE_MODELS.find(m => m.id === modelId);
+  if (!model) throw new Error(`Unknown model: ${modelId}`);
+
+  switch (model.provider) {
+    case 'anthropic':
+      return anthropic(modelId);
+    case 'openai':
+      return openai(modelId);
+    case 'google':
+      return google(modelId);
+    default:
+      throw new Error(`Unknown provider: ${model.provider}`);
   }
-  return _client;
+}
+
+function getModelConfig(modelId: string): ModelOption {
+  return AVAILABLE_MODELS.find(m => m.id === modelId) || AVAILABLE_MODELS[0];
+}
+
+// Get the currently selected model from settings, default to Haiku
+function getSelectedModel(phase: 'discover' | 'research' | 'rewrite'): string {
+  const setting = getSetting(`model_${phase}`);
+  if (setting) return setting;
+  // Defaults
+  switch (phase) {
+    case 'discover': return 'claude-haiku-4-5-20251001';
+    case 'research': return 'claude-haiku-4-5-20251001';
+    case 'rewrite': return 'claude-haiku-4-5-20251001';
+  }
 }
 
 function loadSkillMd(): string {
@@ -18,8 +70,6 @@ function loadSkillMd(): string {
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
-
-const MODEL = 'claude-haiku-4-5-20251001';
 
 export interface ResearchContext {
   last_topic: string | null;
@@ -39,9 +89,13 @@ export interface TopicDirection {
   score: number;
 }
 
-// ── Phase 1: Propose 3 topic directions (no web search, cheap) ──
+// ── Phase 1: Propose 3 topic directions ──
 
 export async function proposeDirections(context: ResearchContext): Promise<TopicDirection[]> {
+  const modelId = getSelectedModel('discover');
+  const config = getModelConfig(modelId);
+  console.log(`Phase 1 using model: ${config.label} (${modelId})`);
+
   const prompt = `You are a social media strategist for Delta, an investment portfolio tracker app by eToro.
 
 Propose exactly 3 topic directions for this week's Instagram/LinkedIn carousel post.
@@ -63,35 +117,63 @@ For each direction, provide:
 
 Return ONLY a JSON array of 3 objects. No other text, no markdown fences.`;
 
-  const response = await callWithRetry(() =>
-    getClient().messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      tools: [{ type: 'web_search_20250305' as any, name: 'web_search' }],
-      messages: [{ role: 'user', content: prompt }],
-    })
-  );
+  // Build tools array — add web search if supported
+  const tools: Record<string, any> = {};
+  if (config.supportsWebSearch && config.provider === 'anthropic') {
+    // Anthropic web search is a special tool type — pass it via provider options
+  }
 
-  const text = extractText(response);
-  console.log('Phase 1 raw text:', text.substring(0, 300));
+  const result = await callWithRetry(async () => {
+    const opts: any = {
+      model: getModelInstance(modelId),
+      maxTokens: 1024,
+      prompt,
+    };
+
+    // Add web search for Anthropic models
+    if (config.supportsWebSearch && config.provider === 'anthropic') {
+      opts.tools = {
+        web_search: anthropic.tools.webSearch_20250305(),
+      };
+      opts.maxSteps = 5;
+    }
+
+    // Add Google search grounding for Gemini
+    if (config.supportsWebSearch && config.provider === 'google') {
+      opts.tools = {
+        google_search: google.tools.googleSearch(),
+      };
+      opts.maxSteps = 5;
+    }
+
+    return generateText(opts);
+  });
+
+  const text = cleanText(result.text);
+  console.log('Phase 1 raw text:', text.substring(0, 500));
 
   const parsed = parseJsonArray(text);
   if (!parsed || parsed.length === 0) {
     console.error('Phase 1 parse failed. Full text:', text);
-    throw new Error('Failed to parse topic directions from Claude');
+    throw new Error('Failed to parse topic directions');
   }
 
   return parsed;
 }
 
-// ── Phase 2: Build full brief for chosen topic (with web search) ──
+// ── Phase 2: Build full brief for chosen topic ──
 
 export async function buildBrief(
   direction: TopicDirection,
   context: ResearchContext,
   sendEvent: (data: any) => void
 ): Promise<any> {
+  const modelId = getSelectedModel('research');
+  const config = getModelConfig(modelId);
   const skillMd = loadSkillMd();
+
+  console.log(`Phase 2 using model: ${config.label} (${modelId})`);
+  sendEvent({ type: 'status', message: `Using ${config.label} for research...` });
 
   const prompt = `Create a complete carousel brief for this topic:
 
@@ -101,7 +183,7 @@ Why now: ${direction.why_now}
 Delta feature: ${direction.delta_feature}
 Hook: ${direction.hook}
 
-Do a web search to gather current data and insights about this topic, then produce the full brief.
+Do web searches to gather current data and insights about this topic, then produce the full brief.
 
 Context:
 - Low saves last week: ${context.low_saves ? 'Yes — make content more specific and deep' : 'No'}
@@ -111,77 +193,58 @@ Return ONLY the JSON brief object as specified in your instructions. No other te
 
   sendEvent({ type: 'status', message: `Researching "${direction.topic}"...` });
 
-  // Multi-turn loop: keep going until Claude returns end_turn (not tool_use)
-  let messages: any[] = [{ role: 'user', content: prompt }];
-  let allText = '';
-  let maxTurns = 8; // safety limit
+  const result = await callWithRetry(async () => {
+    const opts: any = {
+      model: getModelInstance(modelId),
+      maxTokens: 4096,
+      system: skillMd,
+      prompt,
+    };
 
-  for (let turn = 0; turn < maxTurns; turn++) {
-    const response = await callWithRetry(() =>
-      getClient().messages.create({
-        model: MODEL,
-        max_tokens: 4096,
-        system: skillMd,
-        tools: [{ type: 'web_search_20250305' as any, name: 'web_search' }],
-        messages,
-      })
-    );
+    // Add web search tools based on provider
+    if (config.supportsWebSearch && config.provider === 'anthropic') {
+      opts.tools = {
+        web_search: anthropic.tools.webSearch_20250305(),
+      };
+      opts.maxSteps = 10;
+    }
 
-    const blockTypes = response.content.map((b: any) => `${b.type}${(b as any).name ? ':' + (b as any).name : ''}`);
-    console.log(`Phase 2 turn ${turn + 1}: blocks=${blockTypes.join(',')} stop=${response.stop_reason}`);
+    if (config.supportsWebSearch && config.provider === 'google') {
+      opts.tools = {
+        google_search: google.tools.googleSearch(),
+      };
+      opts.maxSteps = 10;
+    }
 
-    // Emit search events for this turn
-    for (const block of response.content) {
-      if (block.type === 'tool_use' && block.name === 'web_search') {
-        sendEvent({ type: 'search', query: (block.input as any)?.query || 'web search' });
+    return generateText(opts);
+  });
+
+  // Log steps for debugging
+  if (result.steps) {
+    for (const step of result.steps) {
+      if (step.toolCalls) {
+        for (const tc of step.toolCalls) {
+          sendEvent({ type: 'search', query: (tc.args as any)?.query || tc.toolName });
+        }
       }
-    }
-
-    // Collect text from this turn
-    const turnText = extractText(response);
-    allText += turnText;
-
-    // If Claude is done, break
-    if (response.stop_reason === 'end_turn') {
-      console.log(`Phase 2 complete after ${turn + 1} turns. Total text: ${allText.length} chars`);
-      break;
-    }
-
-    // If Claude wants to use a tool, we need to continue the conversation
-    // Add the assistant's response and a tool result to continue
-    messages.push({ role: 'assistant', content: response.content });
-
-    // Build tool results for any tool_use blocks
-    const toolResults: any[] = [];
-    for (const block of response.content) {
-      if (block.type === 'tool_use') {
-        // For server-side web_search, the API handles it automatically
-        // but if we get here, we need to provide a placeholder result
-        toolResults.push({
-          type: 'tool_result',
-          tool_use_id: block.id,
-          content: 'Search completed. Please continue with the brief.',
-        });
-      }
-    }
-
-    if (toolResults.length > 0) {
-      messages.push({ role: 'user', content: toolResults });
-      sendEvent({ type: 'status', message: `Processing search results (turn ${turn + 2})...` });
-    } else {
-      // No tool use but also not end_turn — unusual, break to avoid infinite loop
-      console.warn('Unexpected stop_reason:', response.stop_reason);
-      break;
     }
   }
 
-  if (allText.length === 0) {
-    throw new Error('Claude returned no text content after all turns. Try again.');
-  }
+  const text = cleanText(result.text);
+  console.log('Phase 2 text length:', text.length);
+  console.log('Phase 2 text (first 1000):', text.substring(0, 1000));
+  console.log('Phase 2 text (last 500):', text.substring(Math.max(0, text.length - 500)));
 
-  const brief = parseJsonBrief(allText);
+  const brief = parseJsonBrief(text);
   if (!brief) {
-    console.error('Phase 2 parse failed. Text (first 1000 chars):', allText.substring(0, 1000));
+    // Fallback: try to find the last complete JSON object
+    const lastObj = extractLastJsonObject(text);
+    if (lastObj && (lastObj.topic || lastObj.slides)) {
+      console.log('Parsed brief via last-object fallback');
+      sendEvent({ type: 'brief', data: lastObj });
+      return stripCitationsFromValues(lastObj);
+    }
+    console.error('Phase 2 parse failed completely. Text length:', text.length);
     throw new Error('Failed to parse brief JSON from Claude response');
   }
 
@@ -192,7 +255,11 @@ Return ONLY the JSON brief object as specified in your instructions. No other te
 // ── Rewrite ──
 
 export async function rewriteBrief(currentBrief: any, feedback: string): Promise<any> {
+  const modelId = getSelectedModel('rewrite');
+  const config = getModelConfig(modelId);
   const skillMd = loadSkillMd();
+
+  console.log(`Rewrite using model: ${config.label} (${modelId})`);
 
   const prompt = `Here is the current brief that needs revision:
 
@@ -203,16 +270,16 @@ ${feedback}
 
 Revise the brief based on this feedback. Return ONLY the complete updated JSON brief object. No other text, no markdown fences.`;
 
-  const response = await callWithRetry(() =>
-    getClient().messages.create({
-      model: MODEL,
-      max_tokens: 4096,
+  const result = await callWithRetry(async () =>
+    generateText({
+      model: getModelInstance(modelId),
+      maxTokens: 4096,
       system: skillMd,
-      messages: [{ role: 'user', content: prompt }],
+      prompt,
     })
   );
 
-  const text = extractText(response);
+  const text = cleanText(result.text);
   const brief = parseJsonBrief(text);
   if (!brief) {
     console.error('Rewrite parse failed. Text:', text.substring(0, 500));
@@ -223,20 +290,16 @@ Revise the brief based on this feedback. Return ONLY the complete updated JSON b
 
 // ── Helpers ──
 
-function extractText(response: any): string {
-  let text = '';
-  for (const block of response.content) {
-    if (block.type === 'text') {
-      text += block.text;
-    }
-  }
-  // Strip citation tags that Claude adds from web search results
-  text = text.replace(/<cite[^>]*>.*?<\/cite>/gs, '');
-  text = text.replace(/<\/?cite[^>]*>/g, '');
-  // Strip any remaining XML-like tags
-  text = text.replace(/<\/?source[^>]*>/g, '');
-  text = text.replace(/<\/?search_result[^>]*>/g, '');
-  return text;
+function cleanText(text: string): string {
+  // Strip citation/source tags from any provider
+  let cleaned = text;
+  cleaned = cleaned.replace(/<cite[^>]*>.*?<\/cite>/gs, '');
+  cleaned = cleaned.replace(/<\/?cite[^>]*>/g, '');
+  cleaned = cleaned.replace(/<\/?source[^>]*>/g, '');
+  cleaned = cleaned.replace(/<\/?search_result[^>]*>/g, '');
+  // Strip markdown reference links [1], [2] etc that some models add
+  cleaned = cleaned.replace(/\[\d+\]/g, '');
+  return cleaned;
 }
 
 async function callWithRetry<T>(fn: () => Promise<T>, maxAttempts = 5): Promise<T> {
@@ -244,8 +307,8 @@ async function callWithRetry<T>(fn: () => Promise<T>, maxAttempts = 5): Promise<
     try {
       return await fn();
     } catch (err: any) {
-      if (err?.status === 429 && attempt < maxAttempts - 1) {
-        // Parse retry-after header if available, otherwise wait 60s+
+      const status = err?.status || err?.statusCode || (err?.message?.includes('429') ? 429 : 0);
+      if (status === 429 && attempt < maxAttempts - 1) {
         const retryAfter = err?.headers?.['retry-after'];
         const waitSec = retryAfter ? Math.ceil(Number(retryAfter)) + 5 : 65;
         console.log(`Rate limited (attempt ${attempt + 1}/${maxAttempts}). Waiting ${waitSec}s...`);
@@ -306,12 +369,33 @@ function parseJsonBrief(text: string): any {
   return null;
 }
 
+function extractLastJsonObject(text: string): any | null {
+  const lastBrace = text.lastIndexOf('}');
+  if (lastBrace <= 0) return null;
+
+  let depth = 0;
+  let startIdx = -1;
+  for (let i = lastBrace; i >= 0; i--) {
+    if (text[i] === '}') depth++;
+    if (text[i] === '{') depth--;
+    if (depth === 0) { startIdx = i; break; }
+  }
+  if (startIdx < 0) return null;
+
+  try {
+    return JSON.parse(text.substring(startIdx, lastBrace + 1));
+  } catch {
+    return null;
+  }
+}
+
 function stripCitationsFromValues(obj: any): any {
   if (typeof obj === 'string') {
     return obj
       .replace(/<cite[^>]*>.*?<\/cite>/gs, '')
       .replace(/<\/?cite[^>]*>/g, '')
       .replace(/<\/?source[^>]*>/g, '')
+      .replace(/\[\d+\]/g, '')
       .replace(/\s{2,}/g, ' ')
       .trim();
   }
@@ -329,13 +413,16 @@ function stripCitationsFromValues(obj: any): any {
 }
 
 function validateBrief(brief: any) {
-  const required = ['topic', 'cta', 'slides', 'instagram_caption', 'linkedin_caption', 'x_caption'];
-  for (const key of required) {
-    if (!(key in brief)) {
-      throw new Error(`Brief missing required key: ${key}`);
-    }
+  if (!brief.topic) {
+    throw new Error('Brief missing required key: topic');
   }
-  if (!Array.isArray(brief.slides) || brief.slides.length < 5 || brief.slides.length > 7) {
-    throw new Error(`Brief has ${brief.slides?.length} slides, expected 6`);
+  if (!Array.isArray(brief.slides) || brief.slides.length < 4) {
+    throw new Error(`Brief has ${brief.slides?.length ?? 0} slides, expected 6`);
+  }
+  const desired = ['cta', 'instagram_caption', 'linkedin_caption', 'x_caption'];
+  for (const key of desired) {
+    if (!(key in brief)) {
+      console.warn(`Brief missing optional key: ${key} — will use fallback`);
+    }
   }
 }

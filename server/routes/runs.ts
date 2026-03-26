@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { createRun, getAllRuns, getRun, updateRun, getAllSettings, setSetting, getSetting } from '../db';
+import { AVAILABLE_MODELS } from '../services/claude';
 
 const router = Router();
 
@@ -43,6 +44,43 @@ router.put('/settings/:key', (req, res) => {
 router.get('/settings/:key', (req, res) => {
   const value = getSetting(req.params.key);
   res.json({ key: req.params.key, value: value || null });
+});
+
+// Models endpoint
+router.get('/models', (_req, res) => {
+  // Check which providers have API keys configured
+  const availableProviders: string[] = [];
+  if (process.env.ANTHROPIC_API_KEY) availableProviders.push('anthropic');
+  if (process.env.OPENAI_API_KEY) availableProviders.push('openai');
+  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) availableProviders.push('google');
+
+  const models = AVAILABLE_MODELS.map(m => ({
+    ...m,
+    available: availableProviders.includes(m.provider),
+  }));
+
+  // Get current selections
+  const selections = {
+    discover: getSetting('model_discover') || 'claude-haiku-4-5-20251001',
+    research: getSetting('model_research') || 'claude-haiku-4-5-20251001',
+    rewrite: getSetting('model_rewrite') || 'claude-haiku-4-5-20251001',
+  };
+
+  res.json({ models, selections });
+});
+
+// Update model selection
+router.put('/models/:phase', (req, res) => {
+  const phase = req.params.phase;
+  if (!['discover', 'research', 'rewrite'].includes(phase)) {
+    return res.status(400).json({ error: 'Phase must be discover, research, or rewrite' });
+  }
+  const { modelId } = req.body;
+  if (!modelId || !AVAILABLE_MODELS.find(m => m.id === modelId)) {
+    return res.status(400).json({ error: 'Invalid model ID' });
+  }
+  setSetting(`model_${phase}`, modelId);
+  res.json({ phase, modelId });
 });
 
 export default router;

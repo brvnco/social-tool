@@ -9,24 +9,24 @@ export default function SlidePreview({ slide, index }: Props) {
 
   return (
     <div
-      className={`rounded-lg p-4 border ${
+      className={`rounded-2xl p-5 border ${
         isLast
-          ? 'bg-delta-green/20 border-delta-green/30'
-          : 'bg-black/40 border-delta-border'
+          ? 'gradient-green border-emerald-200'
+          : 'bg-delta-navy border-delta-navy'
       }`}
     >
       {/* Slide counter */}
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[10px] text-gray-600 uppercase tracking-widest">
+      <div className="flex items-center justify-between mb-3">
+        <span className={`text-[10px] uppercase tracking-widest font-medium ${isLast ? 'text-delta-muted' : 'text-gray-500'}`}>
           Slide {index + 1}
         </span>
         {isFirst && (
-          <span className="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-medium">
             Hook
           </span>
         )}
         {isLast && (
-          <span className="text-[10px] bg-delta-green/30 text-delta-green px-2 py-0.5 rounded-full">
+          <span className="text-[10px] bg-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
             CTA
           </span>
         )}
@@ -34,12 +34,12 @@ export default function SlidePreview({ slide, index }: Props) {
 
       {/* Content */}
       {isLast ? (
-        <p className={`font-bold text-lg ${isLast ? 'text-delta-green' : 'text-white'}`}>
+        <p className="font-bold text-lg text-emerald-600">
           {slide.cta}
         </p>
       ) : (
         <>
-          <h4 className="font-semibold text-white text-sm leading-tight">
+          <h4 className="font-bold text-white text-sm leading-tight">
             {slide.title || slide.heading}
           </h4>
           {slide.subtitle && (
@@ -51,11 +51,11 @@ export default function SlidePreview({ slide, index }: Props) {
             </p>
           )}
           {slide.swipe_cta && (
-            <p className="text-delta-green text-xs mt-2 font-medium">{slide.swipe_cta}</p>
+            <p className="text-delta-green text-xs mt-2 font-semibold">{slide.swipe_cta}</p>
           )}
           {slide.pro_tip && (
-            <div className="mt-2 bg-delta-green/10 rounded px-2 py-1">
-              <span className="text-[10px] text-delta-green font-semibold">PRO </span>
+            <div className="mt-2 bg-delta-green/10 rounded-lg px-2.5 py-1.5">
+              <span className="text-[10px] text-delta-green font-bold">PRO </span>
               <span className="text-xs text-gray-400">{slide.pro_tip}</span>
             </div>
           )}

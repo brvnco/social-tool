@@ -67,11 +67,11 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
   };
 
   return (
-    <div className="bg-delta-card border border-delta-border rounded-xl p-5">
+    <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-lg">Research in Progress</h2>
+        <h2 className="font-bold text-lg text-delta-text">Research in Progress</h2>
         {connected && (
-          <span className="flex items-center gap-2 text-sm text-delta-green">
+          <span className="flex items-center gap-2 text-sm text-delta-green font-medium">
             <span className="w-2 h-2 rounded-full bg-delta-green animate-pulse" />
             Live
           </span>
@@ -80,22 +80,22 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
 
       <div
         ref={logRef}
-        className="bg-black/30 rounded-lg p-4 font-mono text-sm h-80 overflow-y-auto scrollbar-thin space-y-1"
+        className="bg-delta-subtle rounded-2xl p-5 font-mono text-sm h-80 overflow-y-auto scrollbar-thin space-y-1.5"
       >
         {logs.map((entry, i) => (
           <LogLine key={i} entry={entry} isOld={i < logs.length - 5} />
         ))}
         {logs.length === 0 && connected && (
-          <p className="text-gray-600 animate-pulse">Connecting to Claude...</p>
+          <p className="text-delta-muted animate-pulse">Connecting to Claude...</p>
         )}
       </div>
 
       {error && (
-        <div className="mt-4 flex items-center justify-between bg-red-500/10 border border-red-500/30 rounded-lg p-3">
-          <p className="text-red-400 text-sm">{error}</p>
+        <div className="mt-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-2xl p-4">
+          <p className="text-red-600 text-sm">{error}</p>
           <button
             onClick={retry}
-            className="text-sm bg-red-500/20 text-red-300 px-3 py-1 rounded hover:bg-red-500/30"
+            className="text-sm bg-red-100 text-red-700 px-4 py-1.5 rounded-xl hover:bg-red-200 font-medium"
           >
             Retry
           </button>
@@ -106,34 +106,34 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
 }
 
 function LogLine({ entry, isOld }: { entry: LogEntry; isOld: boolean }) {
-  const opacity = isOld ? 'opacity-50' : 'opacity-100';
+  const opacity = isOld ? 'opacity-40' : 'opacity-100';
 
   switch (entry.type) {
     case 'status':
-      return <p className={`text-gray-400 ${opacity}`}>→ {entry.message}</p>;
+      return <p className={`text-delta-muted ${opacity}`}>→ {entry.message}</p>;
     case 'search':
       return (
-        <p className={`text-blue-400 ${opacity}`}>
+        <p className={`text-blue-600 ${opacity}`}>
           🔍 {entry.query}
         </p>
       );
     case 'candidate':
       return (
-        <p className={`text-amber-400 ${opacity}`}>
+        <p className={`text-amber-600 ${opacity}`}>
           📋 Topic: {entry.topic} (score: {entry.score}/5)
         </p>
       );
     case 'brief':
       return (
-        <p className={`text-delta-green ${opacity}`}>
+        <p className={`text-emerald-600 ${opacity}`}>
           ✅ Brief generated: {entry.data?.topic}
         </p>
       );
     case 'complete':
-      return <p className="text-delta-green font-semibold">✓ Research complete</p>;
+      return <p className="text-emerald-600 font-semibold">✓ Research complete</p>;
     case 'error':
-      return <p className="text-red-400">✗ Error: {entry.message}</p>;
+      return <p className="text-red-600">✗ Error: {entry.message}</p>;
     default:
-      return <p className={`text-gray-500 ${opacity}`}>{JSON.stringify(entry)}</p>;
+      return <p className={`text-delta-muted ${opacity}`}>{JSON.stringify(entry)}</p>;
   }
 }

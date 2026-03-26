@@ -81,18 +81,51 @@ export async function listTextNodes(parentNodeId: string): Promise<Array<{ id: s
 }
 
 /**
- * Export specific frame node IDs as PNG at 2x scale.
+ * Get the width of a frame node to calculate export scale.
+ */
+async function getFrameWidth(frameId: string): Promise<number> {
+  const token = getToken();
+  const fileId = getFileId();
+  const apiId = frameId.replace('-', ':');
+
+  const res = await fetch(
+    `${FIGMA_API}/files/${fileId}/nodes?ids=${encodeURIComponent(apiId)}&depth=0`,
+    { headers: { 'X-Figma-Token': token } }
+  );
+
+  if (!res.ok) return 0;
+  const data = await res.json();
+  const node = data.nodes?.[apiId]?.document;
+  return node?.absoluteBoundingBox?.width || node?.size?.x || 0;
+}
+
+/**
+ * Export specific frame node IDs as PNG at 1080px width.
  * Returns array of temporary Figma CDN URLs (valid ~30 min).
  */
-export async function exportFramesAsPng(frameIds: string[]): Promise<string[]> {
+export async function exportFramesAsPng(frameIds: string[], targetWidth = 1080): Promise<string[]> {
   if (frameIds.length === 0) throw new Error('No frame IDs provided');
 
   const token = getToken();
   const fileId = getFileId();
   const apiIds = frameIds.map(id => id.replace('-', ':')).join(',');
 
+  // Determine scale factor: fetch the width of the first frame
+  let scale = 2; // default fallback
+  try {
+    const frameWidth = await getFrameWidth(frameIds[0]);
+    if (frameWidth > 0) {
+      scale = Math.min(4, Math.max(0.01, targetWidth / frameWidth));
+      // Round to 2 decimal places
+      scale = Math.round(scale * 100) / 100;
+      console.log(`Figma export: frame width=${frameWidth}, target=${targetWidth}, scale=${scale}`);
+    }
+  } catch (err) {
+    console.warn('Could not determine frame width, using scale=2');
+  }
+
   const res = await fetch(
-    `${FIGMA_API}/images/${fileId}?ids=${encodeURIComponent(apiIds)}&scale=2&format=png`,
+    `${FIGMA_API}/images/${fileId}?ids=${encodeURIComponent(apiIds)}&scale=${scale}&format=png`,
     { headers: { 'X-Figma-Token': token } }
   );
 

@@ -48,55 +48,54 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-delta-card border border-delta-border rounded-xl p-5">
-        <h2 className="font-semibold text-lg mb-4">Post Published</h2>
+      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+        <h2 className="font-bold text-xl text-delta-text mb-5">Post Published</h2>
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-5 mb-5">
           {run.ig_post_id && (
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Instagram</p>
-              <p className="text-sm text-gray-300 mt-1 font-mono">{run.ig_post_id}</p>
+            <div className="bg-delta-subtle rounded-2xl p-4">
+              <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">Instagram</p>
+              <p className="text-sm text-delta-text mt-1.5 font-mono">{run.ig_post_id}</p>
             </div>
           )}
           {run.li_post_id && (
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">LinkedIn</p>
-              <p className="text-sm text-gray-300 mt-1 font-mono">{run.li_post_id}</p>
+            <div className="bg-delta-subtle rounded-2xl p-4">
+              <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">LinkedIn</p>
+              <p className="text-sm text-delta-text mt-1.5 font-mono">{run.li_post_id}</p>
             </div>
           )}
           {run.x_post_id && (
-            <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">X (Twitter)</p>
-              <p className="text-sm text-gray-300 mt-1 font-mono">{run.x_post_id}</p>
+            <div className="bg-delta-subtle rounded-2xl p-4">
+              <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">X (Twitter)</p>
+              <p className="text-sm text-delta-text mt-1.5 font-mono">{run.x_post_id}</p>
             </div>
           )}
         </div>
 
         {!run.ig_post_id && !run.li_post_id && !run.x_post_id && (
-          <p className="text-gray-500 text-sm">No post IDs were entered</p>
+          <p className="text-delta-muted text-sm">No post IDs were entered</p>
         )}
       </div>
 
-      <div className="bg-delta-card border border-delta-border rounded-xl p-5 flex items-center justify-between">
+      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-400">Analytics Monitoring</p>
-          <p className="text-lg font-semibold mt-1">{countdown}</p>
-          <p className="text-xs text-gray-600 mt-1">Checks scheduled at +24h, +48h, and +7d</p>
+          <p className="text-sm text-delta-muted font-medium">Analytics Monitoring</p>
+          <p className="text-xl font-bold text-delta-text mt-1">{countdown}</p>
+          <p className="text-xs text-delta-muted mt-1">Checks scheduled at +24h, +48h, and +7d</p>
         </div>
         <button
           onClick={fetchNow}
           disabled={fetching}
-          className="bg-delta-green/20 text-delta-green px-4 py-2 rounded-lg text-sm hover:bg-delta-green/30 disabled:opacity-50"
+          className="bg-delta-green/10 text-delta-green px-5 py-2.5 rounded-xl text-sm hover:bg-delta-green/20 font-semibold disabled:opacity-50 transition"
         >
           {fetching ? 'Fetching...' : 'Fetch Now'}
         </button>
       </div>
 
-      {/* Show partial metrics if available */}
       {(run.reach || run.saves || run.clicks) && (
-        <div className="bg-delta-card border border-delta-border rounded-xl p-5">
-          <h3 className="font-semibold mb-3">Latest Metrics</h3>
-          <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+          <h3 className="font-bold text-delta-text mb-4">Latest Metrics</h3>
+          <div className="grid grid-cols-3 gap-5">
             <MetricCard label="Reach" value={run.reach || 0} />
             <MetricCard label="Saves" value={run.saves || 0} />
             <MetricCard label="Clicks" value={run.clicks || 0} />
@@ -109,9 +108,9 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <div>
-      <p className="text-xs text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className="text-2xl font-bold mt-1">{value.toLocaleString()}</p>
+    <div className="gradient-green rounded-2xl p-4 border border-emerald-100 text-center">
+      <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
+      <p className="text-2xl font-bold text-delta-text mt-1">{value.toLocaleString()}</p>
     </div>
   );
 }

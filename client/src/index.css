@@ -2,17 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+@layer base {
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F5F6FA;
+    color: #1A1D26;
+    -webkit-font-smoothing: antialiased;
+  }
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 .scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #374151;
-  border-radius: 3px;
+  background: #D1D5DB;
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* Gradient card backgrounds */
+.gradient-green {
+  background: linear-gradient(135deg, #E8FFF0 0%, #F0FFF4 100%);
+}
+.gradient-blue {
+  background: linear-gradient(135deg, #EBF5FF 0%, #F0F7FF 100%);
+}
+.gradient-amber {
+  background: linear-gradient(135deg, #FFF8E6 0%, #FFFBF0 100%);
+}
+.gradient-purple {
+  background: linear-gradient(135deg, #F3EEFF 0%, #F8F5FF 100%);
+}
+.gradient-teal {
+  background: linear-gradient(135deg, #E6FFF9 0%, #F0FFFC 100%);
+}
+
+/* Soft input focus */
+input:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12);
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  accent-color: #00E676;
 }
