@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Inter, -apple-system, sans-serif;
+      font-size: 12px;
+      color: #e0e0e0;
+      background: #1a1a2e;
+      padding: 16px;
+    }
+    h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #fff; }
+    .subtitle { color: #888; margin-bottom: 16px; line-height: 1.4; }
+
+    .server-input {
+      display: flex; gap: 8px; margin-bottom: 16px;
+    }
+    .server-input input {
+      flex: 1; background: #0d0d1a; border: 1px solid #333; border-radius: 6px;
+      padding: 8px 10px; color: #fff; font-size: 12px; outline: none;
+    }
+    .server-input input:focus { border-color: #00FF7F; }
+
+    button {
+      background: #00FF7F; color: #0d0d1a; border: none; border-radius: 6px;
+      padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    button:hover { background: #00e070; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.secondary {
+      background: transparent; color: #00FF7F; border: 1px solid #00FF7F33;
+    }
+    button.secondary:hover { background: #00FF7F11; }
+
+    .status {
+      padding: 10px 12px; border-radius: 8px; margin: 12px 0;
+      font-size: 11px; line-height: 1.5;
+    }
+    .status.success { background: #00FF7F15; border: 1px solid #00FF7F33; color: #00FF7F; }
+    .status.error { background: #ff4d4d15; border: 1px solid #ff4d4d33; color: #ff6b6b; }
+    .status.info { background: #4d94ff15; border: 1px solid #4d94ff33; color: #6ba3ff; }
+
+    .run-card {
+      background: #0d0d1a; border: 1px solid #333; border-radius: 8px;
+      padding: 12px; margin-bottom: 8px; cursor: pointer;
+    }
+    .run-card:hover { border-color: #00FF7F55; }
+    .run-card.selected { border-color: #00FF7F; background: #00FF7F08; }
+    .run-card .topic { font-weight: 600; color: #fff; margin-bottom: 4px; }
+    .run-card .meta { color: #666; font-size: 11px; }
+
+    .slides-preview {
+      background: #0d0d1a; border: 1px solid #333; border-radius: 8px;
+      padding: 12px; margin: 12px 0; max-height: 200px; overflow-y: auto;
+    }
+    .slide-row {
+      padding: 6px 0; border-bottom: 1px solid #222;
+    }
+    .slide-row:last-child { border-bottom: none; }
+    .slide-num { color: #00FF7F; font-weight: 600; font-size: 10px; text-transform: uppercase; }
+    .slide-title { color: #fff; font-weight: 500; margin-top: 2px; }
+    .slide-desc { color: #888; margin-top: 2px; font-size: 11px; }
+
+    .actions { display: flex; gap: 8px; margin-top: 16px; }
+    .actions button { flex: 1; }
+
+    .errors { margin-top: 8px; font-size: 10px; color: #ff6b6b; }
+    .errors div { padding: 2px 0; }
+
+    .divider { border-top: 1px solid #222; margin: 16px 0; }
+  </style>
+</head>
+<body>
+  <h2>Delta Carousel Populator</h2>
+  <p class="subtitle">Fetch the latest brief and populate text layers automatically.</p>
+
+  <div class="server-input">
+    <input type="text" id="serverUrl" value="http://localhost:3000" placeholder="Tool server URL" />
+    <button onclick="fetchRuns()">Connect</button>
+  </div>
+
+  <div id="content"></div>
+
+  <script>
+    let runs = [];
+    let selectedRun = null;
+    let nodeMap = {};
+
+    async function fetchRuns() {
+      const url = document.getElementById('serverUrl').value.replace(/\/$/, '');
+      const content = document.getElementById('content');
+
+      try {
+        // Fetch runs
+        const res = await fetch(`${url}/api/runs`);
+        runs = await res.json();
+
+        // Fetch node map from settings
+        try {
+          const settingsRes = await fetch(`${url}/api/settings`);
+          const settings = await settingsRes.json();
+          if (settings.figma_node_map) {
+            nodeMap = JSON.parse(settings.figma_node_map);
+          }
+        } catch (e) {
+          // Try from the FIGMA_TEXT_NODE_MAP setting
+          try {
+            const nmRes = await fetch(`${url}/api/settings/figma_node_map`);
+            const nm = await nmRes.json();
+            if (nm.value) nodeMap = JSON.parse(nm.value);
+          } catch {}
+        }
+
+        // Filter runs that have slide content
+        const validRuns = runs.filter(r => r.slides_json && r.slides_json !== '[]');
+
+        if (validRuns.length === 0) {
+          content.innerHTML = '<div class="status info">No runs with slide content found. Create a run in the web tool first.</div>';
+          return;
+        }
+
+        content.innerHTML = '<p class="subtitle">Select a run to populate:</p>' +
+          validRuns.slice(0, 5).map(r => {
+            const date = new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+            return `<div class="run-card" id="run-${r.id}" onclick="selectRun(${r.id})">
+              <div class="topic">${r.topic || 'Untitled'}</div>
+              <div class="meta">${date} &middot; ${r.status} &middot; ${countSlides(r)} slides</div>
+            </div>`;
+          }).join('');
+
+        // Auto-select the most recent valid run
+        if (validRuns.length > 0) {
+          selectRun(validRuns[0].id);
+        }
+
+      } catch (err) {
+        content.innerHTML = `<div class="status error">Could not connect to ${url}. Is the server running?</div>`;
+      }
+    }
+
+    function countSlides(run) {
+      try { return JSON.parse(run.slides_json).length; } catch { return 0; }
+    }
+
+    function selectRun(id) {
+      selectedRun = runs.find(r => r.id === id);
+      if (!selectedRun) return;
+
+      // Update card selection
+      document.querySelectorAll('.run-card').forEach(el => el.classList.remove('selected'));
+      const card = document.getElementById(`run-${id}`);
+      if (card) card.classList.add('selected');
+
+      // Show preview and actions
+      const slides = JSON.parse(selectedRun.slides_json || '[]');
+      let preview = '<div class="slides-preview">';
+      slides.forEach((s, i) => {
+        const num = i + 1;
+        preview += `<div class="slide-row">
+          <div class="slide-num">Slide ${num}${num === 1 ? ' (Hook)' : num === 6 ? ' (CTA)' : ''}</div>
+          <div class="slide-title">${s.title || s.cta || ''}</div>
+          ${s.description ? `<div class="slide-desc">${s.description}</div>` : ''}
+          ${s.subtitle ? `<div class="slide-desc">${s.subtitle}</div>` : ''}
+        </div>`;
+      });
+      preview += '</div>';
+
+      const nodeMapStatus = Object.keys(nodeMap).length > 0
+        ? `<div class="status success">Node map loaded: ${Object.keys(nodeMap).length} mappings</div>`
+        : `<div class="status info">No node map found. Plugin will search by layer name instead.</div>`;
+
+      // Remove any existing preview/actions
+      const existing = document.getElementById('preview-section');
+      if (existing) existing.remove();
+
+      const section = document.createElement('div');
+      section.id = 'preview-section';
+      section.innerHTML = preview + nodeMapStatus +
+        `<div class="actions">
+          <button onclick="populate()">Populate Figma</button>
+          <button class="secondary" onclick="scanNodes()">Scan Layers</button>
+        </div>
+        <div id="result"></div>`;
+      document.getElementById('content').appendChild(section);
+    }
+
+    function populate() {
+      if (!selectedRun) return;
+      const slides = JSON.parse(selectedRun.slides_json || '[]');
+
+      // Build the data to send to the plugin
+      const slideData = slides.map((s, i) => {
+        const clean = {};
+        for (const [k, v] of Object.entries(s)) {
+          if (typeof v === 'string' && v.trim()) clean[k] = v;
+        }
+        return clean;
+      });
+
+      parent.postMessage({
+        pluginMessage: {
+          type: 'populate',
+          slides: slideData,
+          nodeMap: nodeMap,
+        }
+      }, '*');
+
+      document.getElementById('result').innerHTML = '<div class="status info">Populating...</div>';
+    }
+
+    function scanNodes() {
+      parent.postMessage({
+        pluginMessage: { type: 'scan-nodes' }
+      }, '*');
+      document.getElementById('result').innerHTML = '<div class="status info">Scanning text layers...</div>';
+    }
+
+    // Handle messages from plugin
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg) return;
+
+      if (msg.type === 'populate-result') {
+        let html = '';
+        if (msg.updated > 0) {
+          html += `<div class="status success">Updated ${msg.updated} text field${msg.updated !== 1 ? 's' : ''}</div>`;
+        }
+        if (msg.failed > 0) {
+          html += `<div class="status error">${msg.failed} field${msg.failed !== 1 ? 's' : ''} could not be updated</div>`;
+          if (msg.errors.length > 0) {
+            html += '<div class="errors">' + msg.errors.map(e => `<div>&bull; ${e}</div>`).join('') + '</div>';
+          }
+        }
+        document.getElementById('result').innerHTML = html;
+      }
+
+      if (msg.type === 'scan-result') {
+        const nodes = msg.nodes;
+        let html = `<div class="status info">Found ${nodes.length} text layers</div>`;
+        html += '<div class="slides-preview">';
+        nodes.forEach(n => {
+          html += `<div class="slide-row">
+            <div class="slide-num">${n.id} &middot; ${n.parent}</div>
+            <div class="slide-title">${n.name}</div>
+            <div class="slide-desc">${n.text}</div>
+          </div>`;
+        });
+        html += '</div>';
+        document.getElementById('result').innerHTML = html;
+      }
+    };
+  </script>
+</body>
+</html>

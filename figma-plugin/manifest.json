@@ -1,0 +1,14 @@
+{
+  "name": "Delta Carousel Populator",
+  "id": "delta-carousel-populator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "capabilities": [],
+  "enableProposedApi": false,
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["http://localhost:3000"],
+    "reasoning": "Fetches carousel brief data from the local Delta Social Tool server"
+  }
+}

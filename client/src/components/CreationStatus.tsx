@@ -1,0 +1,225 @@
+import { useState, useEffect } from 'react';
+
+interface Props {
+  runId: number;
+  run: any;
+  onComplete: () => void;
+  onError: (msg: string) => void;
+}
+
+export default function CreationStatus({ runId, run, onComplete, onError }: Props) {
+  const [figmaUrl, setFigmaUrl] = useState('');
+  const [markingReady, setMarkingReady] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+
+  const slides = (() => {
+    try { return JSON.parse(run.slides_json || '[]'); } catch { return []; }
+  })();
+
+  useEffect(() => {
+    fetch('/api/figma/url')
+      .then(r => r.json())
+      .then(d => setFigmaUrl(d.url || ''))
+      .catch(() => {});
+  }, []);
+
+  const copyText = (text: string, key: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(key);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const copyAllSlideText = () => {
+    const allText = slides.map((slide: any, i: number) => {
+      const num = i + 1;
+      const parts: string[] = [`--- Slide ${num} ---`];
+      if (slide.title) parts.push(`Title: ${slide.title}`);
+      if (slide.subtitle) parts.push(`Subtitle: ${slide.subtitle}`);
+      if (slide.description) parts.push(`Description: ${slide.description}`);
+      if (slide.swipe_cta) parts.push(`CTA: ${slide.swipe_cta}`);
+      if (slide.cta) parts.push(`CTA: ${slide.cta}`);
+      return parts.join('\n');
+    }).join('\n\n');
+
+    navigator.clipboard.writeText(allText);
+    setCopiedField('all');
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const markReady = async () => {
+    setMarkingReady(true);
+    try {
+      const res = await fetch(`/api/runs/${runId}/mark-ready`, { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to mark ready');
+      }
+      onComplete();
+    } catch (err: any) {
+      onError(err.message);
+    }
+    setMarkingReady(false);
+  };
+
+  // Slide field definitions per slide number
+  const getSlideFields = (slide: any, index: number) => {
+    const num = index + 1;
+    const fields: Array<{ label: string; value: string; key: string }> = [];
+
+    if (num === 1) {
+      if (slide.title) fields.push({ label: 'Title', value: slide.title, key: `s${num}-title` });
+      if (slide.subtitle) fields.push({ label: 'Subtitle', value: slide.subtitle, key: `s${num}-subtitle` });
+      if (slide.description) fields.push({ label: 'Description', value: slide.description, key: `s${num}-desc` });
+      if (slide.swipe_cta) fields.push({ label: 'Swipe CTA', value: slide.swipe_cta, key: `s${num}-cta` });
+    } else if (num === 6) {
+      if (slide.cta) fields.push({ label: 'CTA', value: slide.cta, key: `s${num}-cta` });
+    } else {
+      if (slide.title) fields.push({ label: 'Title', value: slide.title, key: `s${num}-title` });
+      if (slide.description) fields.push({ label: 'Description', value: slide.description, key: `s${num}-desc` });
+    }
+
+    return fields;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Figma link */}
+      <div className="bg-delta-card border border-delta-green/30 rounded-xl p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-[#1e1e1e] flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 38 57" fill="none">
+                <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"/>
+                <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"/>
+                <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"/>
+                <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"/>
+                <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"/>
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold">Open in Figma</p>
+              <p className="text-sm text-gray-400">Edit the carousel template directly</p>
+            </div>
+          </div>
+          {figmaUrl && (
+            <a
+              href={figmaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-delta-green text-delta-navy font-semibold px-5 py-2 rounded-lg hover:bg-delta-green/90 text-sm"
+            >
+              Open Figma →
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Copy all button */}
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold text-lg">Slide Content</h2>
+        <button
+          onClick={copyAllSlideText}
+          className="text-sm text-delta-green hover:text-delta-green/80 border border-delta-green/30 px-3 py-1.5 rounded-lg"
+        >
+          {copiedField === 'all' ? '✓ Copied all!' : 'Copy all text'}
+        </button>
+      </div>
+
+      {/* Slide cards */}
+      <div className="grid grid-cols-2 gap-4">
+        {slides.map((slide: any, i: number) => {
+          const num = i + 1;
+          const fields = getSlideFields(slide, i);
+          const isCtaSlide = num === 6;
+
+          return (
+            <div
+              key={i}
+              className={`rounded-xl p-4 border ${
+                isCtaSlide
+                  ? 'bg-delta-green/10 border-delta-green/30'
+                  : 'bg-delta-card border-delta-border'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className={`text-xs font-bold uppercase tracking-wider ${
+                  isCtaSlide ? 'text-delta-green' : 'text-gray-500'
+                }`}>
+                  Slide {num}{isCtaSlide ? ' — CTA' : num === 1 ? ' — Hook' : ''}
+                </span>
+                <span className="text-[10px] text-gray-600 bg-gray-800 px-2 py-0.5 rounded-full">
+                  {fields.length} field{fields.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                {fields.map(field => (
+                  <div key={field.key}>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <span className="text-[10px] text-gray-500 uppercase tracking-wider">{field.label}</span>
+                      <button
+                        onClick={() => copyText(field.value, field.key)}
+                        className="text-[10px] text-delta-green/70 hover:text-delta-green"
+                      >
+                        {copiedField === field.key ? '✓' : 'Copy'}
+                      </button>
+                    </div>
+                    <p className={`text-sm ${
+                      field.label === 'Title' || field.label === 'CTA'
+                        ? 'font-semibold text-white'
+                        : 'text-gray-300'
+                    }`}>
+                      {field.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Imagery notes */}
+      {run.visual_direction_json && (() => {
+        const vd = JSON.parse(run.visual_direction_json || '{}');
+        const imagery = vd.imagery || {};
+        if (!imagery.use_spanning_image && !imagery.use_mockup) return null;
+
+        return (
+          <div className="bg-delta-card border border-delta-border rounded-xl p-4">
+            <h3 className="font-semibold text-sm mb-2">Imagery Notes</h3>
+            {imagery.use_spanning_image && (
+              <div className="text-sm text-gray-300 mb-2">
+                <span className="text-gray-500">Spanning image (slides 1–2): </span>
+                {imagery.spanning_image_description}
+              </div>
+            )}
+            {imagery.use_mockup && (
+              <div className="text-sm text-gray-300">
+                <span className="text-gray-500">Phone mockup screen: </span>
+                {imagery.mockup_screen}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Mark as ready */}
+      <div className="bg-delta-card border border-delta-border rounded-xl p-5 flex items-center justify-between">
+        <div>
+          <p className="font-semibold">Done editing in Figma?</p>
+          <p className="text-sm text-gray-400">
+            This will export preview thumbnails and advance to the posting step.
+          </p>
+        </div>
+        <button
+          onClick={markReady}
+          disabled={markingReady}
+          className="bg-delta-green text-delta-navy font-semibold px-6 py-2.5 rounded-lg hover:bg-delta-green/90 disabled:opacity-50"
+        >
+          {markingReady ? 'Exporting...' : 'Mark as Ready'}
+        </button>
+      </div>
+    </div>
+  );
+}
