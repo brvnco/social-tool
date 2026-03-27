@@ -125,7 +125,7 @@ router.post('/runs/:id/pick', async (req, res) => {
   res.json(getRun(id));
 });
 
-// Rewrite an existing brief with feedback
+// Rewrite an existing brief with feedback (non-streaming fallback)
 router.post('/runs/:id/rewrite', async (req, res) => {
   const id = Number(req.params.id);
   const run = getRun(id);
@@ -135,49 +135,88 @@ router.post('/runs/:id/rewrite', async (req, res) => {
   if (!feedback) return res.status(400).json({ error: 'Feedback is required' });
 
   try {
-    const currentBrief = {
-      topic: run.topic,
-      angle: run.angle,
-      delta_feature_primary: run.delta_feature,
-      cta: run.cta,
-      validation_score: run.validation_score,
-      slides: JSON.parse(run.slides_json || '[]'),
-      visual_direction: JSON.parse(run.visual_direction_json || '{}'),
-      instagram_caption: run.instagram_caption,
-      linkedin_caption: run.linkedin_caption,
-      x_caption: run.x_caption,
-    };
-
+    const currentBrief = buildCurrentBrief(run);
     const brief = await rewriteBrief(currentBrief, feedback);
-
-    updateRun(id, {
-      topic: brief.topic,
-      angle: brief.angle,
-      delta_feature: brief.delta_feature_primary || brief.delta_feature,
-      validation_score: brief.validation_score,
-      cta: brief.cta,
-      instagram_caption: brief.instagram_caption,
-      linkedin_caption: brief.linkedin_caption,
-      x_caption: brief.x_caption,
-      slides_json: JSON.stringify(brief.slides),
-      visual_direction_json: JSON.stringify({
-        ...(brief.visual_direction || {}),
-        imagery: brief.imagery,
-        backup: brief.backup,
-        why_now: brief.why_now,
-        delta_feature_secondary: brief.delta_feature_secondary,
-        pro_angle: brief.pro_angle,
-        flagged: brief.flagged,
-        flagged_reason: brief.flagged_reason,
-      }),
-      status: 'pending_approval',
-    });
-
+    saveBriefToRun(id, brief, run);
     res.json(getRun(id));
   } catch (err: any) {
     console.error('Rewrite error:', err);
     res.status(500).json({ error: err.message || 'Rewrite failed' });
   }
 });
+
+// Rewrite with SSE streaming
+router.get('/rewrite/:id/stream', async (req, res) => {
+  const id = Number(req.params.id);
+  const run = getRun(id);
+  if (!run) return res.status(404).json({ error: 'Run not found' });
+
+  const feedback = req.query.feedback as string;
+  if (!feedback) return res.status(400).json({ error: 'Feedback query param is required' });
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    Connection: 'keep-alive',
+  });
+
+  const sendEvent = (data: any) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
+  try {
+    const currentBrief = buildCurrentBrief(run);
+    const brief = await rewriteBrief(currentBrief, feedback, sendEvent);
+    saveBriefToRun(id, brief, run);
+    sendEvent({ type: 'complete' });
+  } catch (err: any) {
+    console.error('Rewrite stream error:', err);
+    sendEvent({ type: 'error', message: err.message || 'Rewrite failed' });
+  }
+
+  res.end();
+});
+
+function buildCurrentBrief(run: any) {
+  return {
+    topic: run.topic,
+    angle: run.angle,
+    delta_feature_primary: run.delta_feature,
+    cta: run.cta,
+    validation_score: run.validation_score,
+    slides: JSON.parse(run.slides_json || '[]'),
+    visual_direction: JSON.parse(run.visual_direction_json || '{}'),
+    instagram_caption: run.instagram_caption,
+    linkedin_caption: run.linkedin_caption,
+    x_caption: run.x_caption,
+  };
+}
+
+function saveBriefToRun(id: number, brief: any, run: any) {
+  const visualData = JSON.parse(run.visual_direction_json || '{}');
+  updateRun(id, {
+    topic: brief.topic,
+    angle: brief.angle,
+    delta_feature: brief.delta_feature_primary || brief.delta_feature,
+    validation_score: brief.validation_score,
+    cta: brief.cta,
+    instagram_caption: brief.instagram_caption,
+    linkedin_caption: brief.linkedin_caption,
+    x_caption: brief.x_caption,
+    slides_json: JSON.stringify(brief.slides),
+    visual_direction_json: JSON.stringify({
+      ...visualData,
+      ...(brief.visual_direction || {}),
+      imagery: brief.imagery,
+      backup: brief.backup,
+      why_now: brief.why_now,
+      delta_feature_secondary: brief.delta_feature_secondary,
+      pro_angle: brief.pro_angle,
+      flagged: brief.flagged,
+      flagged_reason: brief.flagged_reason,
+    }),
+    status: 'pending_approval',
+  });
+}
 
 export default router;

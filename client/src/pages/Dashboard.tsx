@@ -14,15 +14,15 @@ interface Run {
 }
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  researching: { bg: 'bg-blue-50', text: 'text-blue-600', label: 'New' },
-  picking: { bg: 'bg-indigo-50', text: 'text-indigo-600', label: 'Pick Direction' },
-  briefing: { bg: 'bg-blue-50', text: 'text-blue-600', label: 'Researching' },
-  pending_approval: { bg: 'bg-amber-50', text: 'text-amber-600', label: 'Pending Approval' },
-  creating: { bg: 'bg-blue-50', text: 'text-blue-600', label: 'Creating' },
-  ready: { bg: 'bg-emerald-50', text: 'text-emerald-600', label: 'Ready to Post' },
-  posted: { bg: 'bg-teal-50', text: 'text-teal-600', label: 'Posted' },
-  complete: { bg: 'bg-purple-50', text: 'text-purple-600', label: 'Complete' },
-  error: { bg: 'bg-red-50', text: 'text-red-600', label: 'Error' },
+  researching: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400', label: 'New' },
+  picking: { bg: 'bg-indigo-50 dark:bg-indigo-950', text: 'text-indigo-600 dark:text-indigo-400', label: 'Pick Direction' },
+  briefing: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400', label: 'Researching' },
+  pending_approval: { bg: 'bg-amber-50 dark:bg-amber-950', text: 'text-amber-600 dark:text-amber-400', label: 'Pending Approval' },
+  creating: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400', label: 'Creating' },
+  ready: { bg: 'bg-emerald-50 dark:bg-emerald-950', text: 'text-emerald-600 dark:text-emerald-400', label: 'Ready to Post' },
+  posted: { bg: 'bg-teal-50 dark:bg-teal-950', text: 'text-teal-600 dark:text-teal-400', label: 'Posted' },
+  complete: { bg: 'bg-purple-50 dark:bg-purple-950', text: 'text-purple-600 dark:text-purple-400', label: 'Complete' },
+  error: { bg: 'bg-red-50 dark:bg-red-950', text: 'text-red-600 dark:text-red-400', label: 'Error' },
 };
 
 export default function Dashboard() {
@@ -64,7 +64,7 @@ export default function Dashboard() {
         <button
           onClick={startRun}
           disabled={creating}
-          className="bg-delta-green text-white font-semibold px-6 py-3 rounded-2xl shadow-card hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+          className="bg-delta-accent text-white font-semibold px-6 py-3 rounded-2xl shadow-card hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
         >
           {creating ? 'Starting...' : '+ Run this week'}
         </button>
@@ -81,16 +81,16 @@ export default function Dashboard() {
       {currentRun && (
         <div
           onClick={() => navigate(`/runs/${currentRun.id}`)}
-          className="bg-white rounded-3xl p-6 shadow-card hover:shadow-card-hover cursor-pointer transition-all border border-delta-border group"
+          className="bg-delta-card rounded-3xl p-6 shadow-card hover:shadow-card-hover cursor-pointer transition-all border border-delta-border group"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-delta-green/10 flex items-center justify-center">
-                <span className="text-delta-green text-xl">▲</span>
+              <div className="w-12 h-12 rounded-2xl bg-delta-accent/10 flex items-center justify-center">
+                <span className="text-delta-accent text-xl">&blacktriangle;</span>
               </div>
               <div>
                 <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">Current Run</p>
-                <h3 className="text-lg font-bold text-delta-text mt-0.5 group-hover:text-delta-green transition">
+                <h3 className="text-lg font-bold text-delta-text mt-0.5 group-hover:text-delta-accent transition">
                   {currentRun.topic || 'Research in progress...'}
                 </h3>
                 <p className="text-delta-muted text-sm">
@@ -114,10 +114,10 @@ export default function Dashboard() {
               <div
                 key={run.id}
                 onClick={() => navigate(`/runs/${run.id}`)}
-                className="bg-white rounded-2xl p-4 px-5 shadow-card hover:shadow-card-hover cursor-pointer transition-all border border-delta-border flex items-center justify-between group"
+                className="bg-delta-card rounded-2xl p-4 px-5 shadow-card hover:shadow-card-hover cursor-pointer transition-all border border-delta-border flex items-center justify-between group"
               >
                 <div className="flex-1">
-                  <h4 className="font-semibold text-delta-text group-hover:text-delta-green transition">
+                  <h4 className="font-semibold text-delta-text group-hover:text-delta-accent transition">
                     {run.topic || 'Untitled'}
                   </h4>
                   <p className="text-delta-muted text-sm mt-0.5">
@@ -141,7 +141,7 @@ export default function Dashboard() {
       {runs.length === 0 && (
         <div className="text-center py-24 text-delta-muted">
           <div className="w-16 h-16 rounded-3xl bg-delta-subtle mx-auto flex items-center justify-center mb-4">
-            <span className="text-3xl opacity-40">▲</span>
+            <span className="text-3xl opacity-40">&blacktriangle;</span>
           </div>
           <p className="text-lg font-medium">No runs yet</p>
           <p className="text-sm mt-1">Click "Run this week" to start your first content pipeline</p>
@@ -153,7 +153,7 @@ export default function Dashboard() {
 
 function StatCard({ label, sublabel, value, gradient }: { label: string; sublabel: string; value: number; gradient: string }) {
   return (
-    <div className={`${gradient} rounded-3xl p-5 border border-white/50`}>
+    <div className={`${gradient} rounded-3xl p-5 border border-delta-border`}>
       <p className="text-delta-muted text-xs font-medium uppercase tracking-wider">{label}</p>
       <p className="text-3xl font-bold text-delta-text mt-2">{value.toLocaleString()}</p>
       <p className="text-delta-muted text-xs mt-1">{sublabel}</p>
@@ -162,7 +162,7 @@ function StatCard({ label, sublabel, value, gradient }: { label: string; sublabe
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const config = STATUS_CONFIG[status] || { bg: 'bg-gray-100', text: 'text-gray-500', label: status };
+  const config = STATUS_CONFIG[status] || { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-500', label: status };
   return (
     <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text}`}>
       {config.label}

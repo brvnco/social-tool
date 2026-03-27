@@ -119,7 +119,7 @@ export default function RunDetail() {
   if (!run) {
     return (
       <div className="flex items-center justify-center py-24">
-        <div className="w-8 h-8 rounded-full border-2 border-delta-green border-t-transparent animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-delta-accent border-t-transparent animate-spin" />
       </div>
     );
   }
@@ -137,8 +137,8 @@ export default function RunDetail() {
       {toast && (
         <div className={`fixed top-20 right-8 z-50 px-5 py-3 rounded-2xl text-sm max-w-md shadow-lg border ${
           toast.type === 'error'
-            ? 'bg-red-50 border-red-200 text-red-700'
-            : 'bg-blue-50 border-blue-200 text-blue-700'
+            ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300'
+            : 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'
         }`}>
           <div className="flex items-center gap-3">
             <span>{toast.msg}</span>
@@ -149,7 +149,7 @@ export default function RunDetail() {
 
       {/* Vertical stepper */}
       <div className="w-56 shrink-0">
-        <div className="sticky top-24 bg-white rounded-3xl shadow-card border border-delta-border p-3">
+        <div className="sticky top-24 bg-delta-card rounded-3xl shadow-card border border-delta-border p-3">
           {STEPS.map((step, i) => {
             const isCurrent = i === currentStepIndex;
             const isPast = i < currentStepIndex;
@@ -167,22 +167,22 @@ export default function RunDetail() {
                 <div
                   className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
                     hasError
-                      ? 'bg-red-100 text-red-600'
+                      ? 'bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400'
                       : isViewing
-                      ? 'bg-delta-green text-white shadow-sm'
+                      ? 'bg-delta-accent text-white shadow-sm'
                       : isPast
-                      ? 'bg-emerald-100 text-emerald-600'
+                      ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400'
                       : isCurrent
-                      ? 'bg-delta-green/15 text-delta-green'
+                      ? 'bg-delta-accent/15 text-delta-accent'
                       : 'bg-delta-subtle text-delta-muted'
                   }`}
                 >
-                  {hasError ? '!' : isPast ? '✓' : step.icon}
+                  {hasError ? '!' : isPast ? '\u2713' : step.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <span
                     className={`text-sm font-medium block ${
-                      hasError ? 'text-red-600'
+                      hasError ? 'text-red-600 dark:text-red-400'
                       : isViewing ? 'text-delta-text'
                       : isCurrent ? 'text-delta-text'
                       : isPast ? 'text-delta-muted'
@@ -192,7 +192,7 @@ export default function RunDetail() {
                     {step.label}
                   </span>
                   {hasError && <span className="text-[10px] text-red-500 block">Error</span>}
-                  {isCurrent && !hasError && <span className="text-[10px] text-delta-green block font-medium">Current</span>}
+                  {isCurrent && !hasError && <span className="text-[10px] text-delta-accent block font-medium">Current</span>}
                 </div>
               </button>
             );
@@ -213,10 +213,10 @@ export default function RunDetail() {
 
         {/* Error banner */}
         {stepErrors[activeStepKey] && (
-          <div className="mb-5 bg-red-50 border border-red-200 rounded-2xl p-4 flex items-start justify-between gap-3">
+          <div className="mb-5 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-2xl p-4 flex items-start justify-between gap-3">
             <div>
-              <p className="text-red-700 font-semibold text-sm">Error on this step</p>
-              <p className="text-red-600/70 text-sm mt-1">{stepErrors[activeStepKey]}</p>
+              <p className="text-red-700 dark:text-red-300 font-semibold text-sm">Error on this step</p>
+              <p className="text-red-600/70 dark:text-red-400/70 text-sm mt-1">{stepErrors[activeStepKey]}</p>
             </div>
             <button onClick={() => clearStepError(activeStepKey)} className="text-red-400 hover:text-red-600 shrink-0 text-lg">&times;</button>
           </div>
@@ -226,7 +226,7 @@ export default function RunDetail() {
         {activeStepKey === 'researching' && (
           <>
             {(run.status === 'researching' || run.status === 'error') && (
-              <div className="bg-white rounded-3xl shadow-card border border-delta-border p-8 space-y-5">
+              <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-8 space-y-5">
                 <div>
                   <h2 className="font-bold text-xl text-delta-text">Discover Topics</h2>
                   <p className="text-delta-muted mt-1">Claude will propose 3 topic directions for this week's carousel.</p>
@@ -234,7 +234,7 @@ export default function RunDetail() {
                 <button
                   onClick={startPropose}
                   disabled={proposing}
-                  className="bg-delta-green text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+                  className="bg-delta-accent text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   {proposing ? 'Generating...' : run.status === 'error' ? 'Retry' : 'Propose Directions'}
                 </button>
@@ -281,7 +281,7 @@ export default function RunDetail() {
             ) : getStepIndex(run.status) > 2 ? (
               <StepSummary title="Research Complete" details={[
                 { label: 'Topic', value: run.topic },
-                { label: 'Score', value: run.validation_score ? `${run.validation_score}/5` : '—' },
+                { label: 'Score', value: run.validation_score ? `${run.validation_score}/5` : '\u2014' },
               ]} />
             ) : (
               <StepNotReady label="Research" />
@@ -369,9 +369,9 @@ export default function RunDetail() {
 
 function StepNotReady({ label }: { label: string }) {
   return (
-    <div className="bg-white rounded-3xl shadow-card border border-delta-border p-10 text-center">
+    <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-10 text-center">
       <div className="w-12 h-12 rounded-2xl bg-delta-subtle mx-auto flex items-center justify-center mb-3">
-        <span className="text-delta-muted text-xl">⏳</span>
+        <span className="text-delta-muted text-xl">&#9203;</span>
       </div>
       <p className="text-delta-muted font-medium">{label} — not reached yet</p>
       <p className="text-delta-muted/60 text-sm mt-1">Complete the previous steps first.</p>
@@ -381,10 +381,10 @@ function StepNotReady({ label }: { label: string }) {
 
 function StepSummary({ title, details }: { title: string; details: { label: string; value: string }[] }) {
   return (
-    <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+    <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
       <div className="flex items-center gap-2 mb-4">
-        <div className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
-          <span className="text-emerald-600 text-xs font-bold">✓</span>
+        <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+          <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">&check;</span>
         </div>
         <h2 className="font-bold text-delta-text">{title}</h2>
       </div>
@@ -392,7 +392,7 @@ function StepSummary({ title, details }: { title: string; details: { label: stri
         {details.map(d => (
           <div key={d.label} className="flex gap-3 text-sm">
             <span className="text-delta-muted w-24 shrink-0 font-medium">{d.label}</span>
-            <span className="text-delta-text">{d.value || '—'}</span>
+            <span className="text-delta-text">{d.value || '\u2014'}</span>
           </div>
         ))}
       </div>

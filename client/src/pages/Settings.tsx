@@ -23,31 +23,31 @@ interface ModelData {
 }
 
 const SLIDE_FIELDS = [
-  { key: 'slide1_title', label: 'Slide 1 — Title' },
-  { key: 'slide1_subtitle', label: 'Slide 1 — Subtitle' },
-  { key: 'slide1_description', label: 'Slide 1 — Description' },
-  { key: 'slide1_swipe_cta', label: 'Slide 1 — Swipe CTA' },
-  { key: 'slide2_title', label: 'Slide 2 — Title' },
-  { key: 'slide2_description', label: 'Slide 2 — Description' },
-  { key: 'slide3_title', label: 'Slide 3 — Title' },
-  { key: 'slide3_description', label: 'Slide 3 — Description' },
-  { key: 'slide4_title', label: 'Slide 4 — Title' },
-  { key: 'slide4_description', label: 'Slide 4 — Description' },
-  { key: 'slide5_title', label: 'Slide 5 — Title' },
-  { key: 'slide5_description', label: 'Slide 5 — Description' },
-  { key: 'slide6_cta', label: 'Slide 6 — CTA' },
+  { key: 'slide1_title', label: 'Slide 1 \u2014 Title' },
+  { key: 'slide1_subtitle', label: 'Slide 1 \u2014 Subtitle' },
+  { key: 'slide1_description', label: 'Slide 1 \u2014 Description' },
+  { key: 'slide1_swipe_cta', label: 'Slide 1 \u2014 Swipe CTA' },
+  { key: 'slide2_title', label: 'Slide 2 \u2014 Title' },
+  { key: 'slide2_description', label: 'Slide 2 \u2014 Description' },
+  { key: 'slide3_title', label: 'Slide 3 \u2014 Title' },
+  { key: 'slide3_description', label: 'Slide 3 \u2014 Description' },
+  { key: 'slide4_title', label: 'Slide 4 \u2014 Title' },
+  { key: 'slide4_description', label: 'Slide 4 \u2014 Description' },
+  { key: 'slide5_title', label: 'Slide 5 \u2014 Title' },
+  { key: 'slide5_description', label: 'Slide 5 \u2014 Description' },
+  { key: 'slide6_cta', label: 'Slide 6 \u2014 CTA' },
 ];
 
 const COST_COLORS: Record<string, string> = {
-  low: 'bg-emerald-50 text-emerald-600',
-  medium: 'bg-amber-50 text-amber-600',
-  high: 'bg-red-50 text-red-600',
+  low: 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400',
+  medium: 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400',
+  high: 'bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400',
 };
 
 const PROVIDER_COLORS: Record<string, string> = {
-  anthropic: 'bg-orange-50 text-orange-600',
-  openai: 'bg-green-50 text-green-700',
-  google: 'bg-blue-50 text-blue-600',
+  anthropic: 'bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400',
+  openai: 'bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400',
+  google: 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400',
 };
 
 export default function Settings() {
@@ -120,7 +120,7 @@ export default function Settings() {
 
       {/* Model selector */}
       {modelData && (
-        <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
           <h2 className="font-bold text-delta-text text-lg mb-2">AI Models</h2>
           <p className="text-sm text-delta-muted mb-6">Choose which model to use for each phase. Add API keys to your .env to enable more providers.</p>
 
@@ -133,9 +133,9 @@ export default function Settings() {
               <div key={phase}>
                 <div className="flex items-center gap-2 mb-2">
                   <p className="font-semibold text-delta-text">{label}</p>
-                  <p className="text-xs text-delta-muted">— {desc}</p>
+                  <p className="text-xs text-delta-muted">\u2014 {desc}</p>
                   {modelSaved === phase && (
-                    <span className="text-xs text-emerald-600 font-medium ml-auto">✓ Saved</span>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium ml-auto">&check; Saved</span>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -150,17 +150,17 @@ export default function Settings() {
                         disabled={isDisabled}
                         className={`text-left rounded-2xl p-3.5 border-2 transition-all ${
                           isSelected
-                            ? 'border-delta-green bg-emerald-50/50 shadow-sm'
+                            ? 'border-delta-accent bg-delta-accent/10 shadow-sm'
                             : isDisabled
                             ? 'border-delta-border bg-delta-subtle/50 opacity-50 cursor-not-allowed'
-                            : 'border-delta-border bg-white hover:border-delta-green/30 cursor-pointer'
+                            : 'border-delta-border bg-delta-card hover:border-delta-accent/30 cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
                           <span className="font-semibold text-sm text-delta-text">{model.label}</span>
                           <div className="flex gap-1.5">
                             {model.supportsWebSearch && (
-                              <span className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-md font-medium">🔍 Search</span>
+                              <span className="text-[9px] bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded-md font-medium">Search</span>
                             )}
                             <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-medium ${COST_COLORS[model.costTier]}`}>
                               {model.costTier === 'low' ? '$' : model.costTier === 'medium' ? '$$' : '$$$'}
@@ -186,12 +186,12 @@ export default function Settings() {
       )}
 
       {/* Environment variables */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-delta-text text-lg mb-5">Environment Variables</h2>
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(health).map(([key, entry]) => (
-            <div key={key} className={`flex items-center gap-3 py-2.5 px-4 rounded-xl ${entry.present ? 'bg-emerald-50' : entry.required ? 'bg-red-50' : 'bg-delta-subtle'}`}>
-              <span className={`w-2.5 h-2.5 rounded-full ${entry.present ? 'bg-emerald-500' : entry.required ? 'bg-red-500' : 'bg-gray-300'}`} />
+            <div key={key} className={`flex items-center gap-3 py-2.5 px-4 rounded-xl ${entry.present ? 'bg-emerald-50 dark:bg-emerald-950' : entry.required ? 'bg-red-50 dark:bg-red-950' : 'bg-delta-subtle'}`}>
+              <span className={`w-2.5 h-2.5 rounded-full ${entry.present ? 'bg-emerald-500' : entry.required ? 'bg-red-500' : 'bg-gray-300 dark:bg-gray-600'}`} />
               <span className="text-sm text-delta-text font-mono">{key}</span>
               {!entry.required && (
                 <span className="text-[10px] text-delta-muted uppercase ml-auto font-medium">optional</span>
@@ -203,7 +203,7 @@ export default function Settings() {
       </div>
 
       {/* Figma node ID mapper */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="font-bold text-delta-text text-lg">Figma Node ID Mapper</h2>
@@ -214,9 +214,9 @@ export default function Settings() {
           <button
             onClick={saveNodeMap}
             disabled={saving}
-            className="bg-delta-green text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:shadow-glow transition disabled:opacity-50"
+            className="bg-delta-accent text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:shadow-glow transition disabled:opacity-50"
           >
-            {saved ? '✓ Saved!' : saving ? 'Saving...' : 'Save'}
+            {saved ? '\u2713 Saved!' : saving ? 'Saving...' : 'Save'}
           </button>
         </div>
 
@@ -237,19 +237,19 @@ export default function Settings() {
       </div>
 
       {/* Manual override */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-delta-text text-lg mb-2">Manual Override</h2>
         <p className="text-sm text-delta-muted mb-4">Start a new research run immediately</p>
         <button
           onClick={triggerResearch}
-          className="bg-delta-green/10 text-delta-green px-5 py-2.5 rounded-xl text-sm hover:bg-delta-green/20 font-semibold transition"
+          className="bg-delta-accent/10 text-delta-accent px-5 py-2.5 rounded-xl text-sm hover:bg-delta-accent/20 font-semibold transition"
         >
           Run Research Now
         </button>
       </div>
 
       {/* Figma file info */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-delta-text text-lg mb-4">Figma Template</h2>
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3">
@@ -264,15 +264,15 @@ export default function Settings() {
             href="https://www.figma.com/design/RiCMWapLKbsuNXcKKqRo27/2025-Socials?node-id=1-19"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-delta-green hover:text-emerald-700 font-semibold inline-block mt-1 transition"
+            className="text-delta-accent hover:opacity-80 font-semibold inline-block mt-1 transition"
           >
-            Open in Figma →
+            Open in Figma &rarr;
           </a>
         </div>
         <div className="mt-4 p-4 bg-delta-subtle rounded-2xl border border-delta-border">
           <p className="text-xs text-delta-muted">
             <strong className="text-delta-text">How to get node IDs:</strong> Open the Figma file, select a text layer,
-            and check the URL — the node ID appears after <code className="bg-white px-1 rounded">node-id=</code>. Replace the dash with a colon (e.g. <code className="bg-white px-1 rounded">6-1095</code> → <code className="bg-white px-1 rounded">6:1095</code>).
+            and check the URL &mdash; the node ID appears after <code className="bg-delta-card px-1 rounded">node-id=</code>. Replace the dash with a colon (e.g. <code className="bg-delta-card px-1 rounded">6-1095</code> &rarr; <code className="bg-delta-card px-1 rounded">6:1095</code>).
           </p>
         </div>
       </div>
