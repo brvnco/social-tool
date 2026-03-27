@@ -81,7 +81,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
   return (
     <div className="space-y-6">
       {/* Figma link */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-green/20 p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-green/20 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-delta-subtle flex items-center justify-center">
@@ -116,7 +116,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         <h2 className="font-bold text-lg text-delta-text">Slide Content</h2>
         <button
           onClick={copyAllSlideText}
-          className="text-sm text-delta-green hover:text-emerald-700 border border-delta-green/30 px-4 py-2 rounded-xl font-medium hover:bg-emerald-50 transition"
+          className="text-sm text-delta-green hover:text-delta-green border border-delta-green/30 px-4 py-2 rounded-xl font-medium hover:bg-delta-green/10 transition"
         >
           {copiedField === 'all' ? '✓ Copied all!' : 'Copy all text'}
         </button>
@@ -135,7 +135,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
               className={`rounded-2xl p-5 border ${
                 isCtaSlide
                   ? 'gradient-green border-emerald-200'
-                  : 'bg-white shadow-card border-delta-border'
+                  : 'bg-delta-card shadow-card border-delta-border'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
@@ -184,7 +184,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         return (
           <>
             {imagery.use_mockup && (
-              <div className="bg-white rounded-3xl shadow-card border border-purple-200 p-6">
+              <div className="bg-delta-card rounded-3xl shadow-card border border-purple-200 dark:border-purple-500/30 p-6">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-xl">
                     📱
@@ -196,7 +196,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                 </div>
 
                 <div className="space-y-3">
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100">
+                  <div className="gradient-purple rounded-2xl p-4 border border-purple-200 dark:border-purple-500/30">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 1 — Delta App Screen to Use</p>
                       <button
@@ -209,7 +209,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                     <p className="text-sm text-delta-text font-semibold">{imagery.mockup_screen}</p>
                   </div>
 
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100">
+                  <div className="gradient-purple rounded-2xl p-4 border border-purple-200 dark:border-purple-500/30">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 2 — Weavy Mockup Generation Prompt</p>
                       <button
@@ -222,7 +222,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                     <p className="text-sm text-delta-muted italic">{imagery.mockup_prompt}</p>
                   </div>
 
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100">
+                  <div className="gradient-purple rounded-2xl p-4 border border-purple-200 dark:border-purple-500/30">
                     <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium mb-2">Step 3 — Generate in Weavy</p>
                     <div className="flex items-center gap-3">
                       <a
@@ -241,7 +241,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
             )}
 
             {imagery.use_spanning_image && (
-              <div className="bg-white rounded-3xl shadow-card border border-delta-border p-5">
+              <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-5">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="text-lg">🖼</span>
                   <p className="font-bold text-sm text-delta-text">Spanning Image (Slides 1–2)</p>
@@ -254,7 +254,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
       })()}
 
       {/* Mark as ready */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
         <div>
           <p className="font-bold text-delta-text">Done editing in Figma?</p>
           <p className="text-sm text-delta-muted">

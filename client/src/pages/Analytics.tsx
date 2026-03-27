@@ -54,7 +54,7 @@ export default function Analytics() {
 
       {/* Runs table */}
       {runs.length > 0 && (
-        <div className="bg-white rounded-3xl shadow-card border border-delta-border overflow-hidden">
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-delta-border bg-delta-subtle">
@@ -105,7 +105,7 @@ function ChartCard({
   gradient: string;
 }) {
   return (
-    <div className={`bg-white rounded-3xl shadow-card border border-delta-border p-6`}>
+    <div className={`bg-delta-card rounded-3xl shadow-card border border-delta-border p-6`}>
       <div className="flex items-center gap-2 mb-4">
         <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: color }} />
         <h3 className="text-sm font-semibold text-delta-text">{title}</h3>

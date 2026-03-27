@@ -32,7 +32,7 @@ export default function AnalyticsCard({ run }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-xl text-delta-text mb-5">7-Day Performance</h2>
 
         <div className="grid grid-cols-4 gap-4 mb-6">

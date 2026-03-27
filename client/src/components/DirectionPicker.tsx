@@ -58,7 +58,7 @@ export default function DirectionPicker({ runId, directions, onPicked, onError }
               key={i}
               onClick={() => pick(d)}
               disabled={picking}
-              className="w-full text-left bg-white rounded-3xl shadow-card border border-delta-border p-6 hover:shadow-card-hover hover:border-delta-green/30 transition-all group disabled:opacity-50"
+              className="w-full text-left bg-delta-card rounded-3xl shadow-card border border-delta-border p-6 hover:shadow-card-hover hover:border-delta-green/30 transition-all group disabled:opacity-50"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
@@ -68,7 +68,7 @@ export default function DirectionPicker({ runId, directions, onPicked, onError }
                     </span>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(n => (
-                        <span key={n} className={`w-2 h-2 rounded-full ${n <= d.score ? 'bg-delta-green' : 'bg-gray-200'}`} />
+                        <span key={n} className={`w-2 h-2 rounded-full ${n <= d.score ? 'bg-delta-green' : 'bg-delta-border'}`} />
                       ))}
                     </div>
                   </div>

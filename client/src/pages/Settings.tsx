@@ -120,7 +120,7 @@ export default function Settings() {
 
       {/* Model selector */}
       {modelData && (
-        <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
           <h2 className="font-bold text-delta-text text-lg mb-2">AI Models</h2>
           <p className="text-sm text-delta-muted mb-6">Choose which model to use for each phase. Add API keys to your .env to enable more providers.</p>
 
@@ -150,10 +150,10 @@ export default function Settings() {
                         disabled={isDisabled}
                         className={`text-left rounded-2xl p-3.5 border-2 transition-all ${
                           isSelected
-                            ? 'border-delta-green bg-emerald-50/50 shadow-sm'
+                            ? 'border-delta-green bg-delta-green/5 shadow-sm'
                             : isDisabled
                             ? 'border-delta-border bg-delta-subtle/50 opacity-50 cursor-not-allowed'
-                            : 'border-delta-border bg-white hover:border-delta-green/30 cursor-pointer'
+                            : 'border-delta-border bg-delta-card hover:border-delta-green/30 cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
@@ -186,7 +186,7 @@ export default function Settings() {
       )}
 
       {/* Environment variables */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-delta-text text-lg mb-5">Environment Variables</h2>
         <div className="grid grid-cols-2 gap-3">
           {Object.entries(health).map(([key, entry]) => (
@@ -203,7 +203,7 @@ export default function Settings() {
       </div>
 
       {/* Figma node ID mapper */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
             <h2 className="font-bold text-delta-text text-lg">Figma Node ID Mapper</h2>
@@ -237,7 +237,7 @@ export default function Settings() {
       </div>
 
       {/* Manual override */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-delta-text text-lg mb-2">Manual Override</h2>
         <p className="text-sm text-delta-muted mb-4">Start a new research run immediately</p>
         <button
@@ -249,7 +249,7 @@ export default function Settings() {
       </div>
 
       {/* Figma file info */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-delta-text text-lg mb-4">Figma Template</h2>
         <div className="space-y-3 text-sm">
           <div className="flex items-center gap-3">
@@ -264,7 +264,7 @@ export default function Settings() {
             href="https://www.figma.com/design/RiCMWapLKbsuNXcKKqRo27/2025-Socials?node-id=1-19"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-delta-green hover:text-emerald-700 font-semibold inline-block mt-1 transition"
+            className="text-delta-green hover:text-delta-green font-semibold inline-block mt-1 transition"
           >
             Open in Figma →
           </a>
@@ -272,7 +272,7 @@ export default function Settings() {
         <div className="mt-4 p-4 bg-delta-subtle rounded-2xl border border-delta-border">
           <p className="text-xs text-delta-muted">
             <strong className="text-delta-text">How to get node IDs:</strong> Open the Figma file, select a text layer,
-            and check the URL — the node ID appears after <code className="bg-white px-1 rounded">node-id=</code>. Replace the dash with a colon (e.g. <code className="bg-white px-1 rounded">6-1095</code> → <code className="bg-white px-1 rounded">6:1095</code>).
+            and check the URL — the node ID appears after <code className="bg-delta-subtle px-1 rounded">node-id=</code>. Replace the dash with a colon (e.g. <code className="bg-delta-subtle px-1 rounded">6-1095</code> → <code className="bg-delta-subtle px-1 rounded">6:1095</code>).
           </p>
         </div>
       </div>

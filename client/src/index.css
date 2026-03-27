@@ -3,10 +3,32 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --delta-accent: 103 78 255;
+    --delta-bg: 245 246 250;
+    --delta-card: 255 255 255;
+    --delta-border: 232 235 240;
+    --delta-navy: 11 0 33;
+    --delta-text: 26 29 38;
+    --delta-muted: 107 114 128;
+    --delta-subtle: 240 242 247;
+  }
+
+  .dark {
+    --delta-accent: 0 230 118;
+    --delta-bg: 10 14 26;
+    --delta-card: 17 24 39;
+    --delta-border: 30 41 59;
+    --delta-navy: 11 0 33;
+    --delta-text: 241 245 249;
+    --delta-muted: 148 163 184;
+    --delta-subtle: 30 41 59;
+  }
+
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #F5F6FA;
-    color: #1A1D26;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: rgb(var(--delta-bg));
+    color: rgb(var(--delta-text));
     -webkit-font-smoothing: antialiased;
   }
 }
@@ -45,10 +67,27 @@
 /* Soft input focus */
 input:focus, textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.12);
+  box-shadow: 0 0 0 3px rgb(var(--delta-accent) / 0.12);
 }
 
 /* Checkbox styling */
 input[type="checkbox"] {
-  accent-color: #00E676;
+  accent-color: rgb(var(--delta-accent));
+}
+
+/* Dark mode gradient overrides */
+.dark .gradient-green {
+  background: linear-gradient(135deg, rgba(0,230,118,0.08) 0%, rgba(0,230,118,0.04) 100%);
+}
+.dark .gradient-blue {
+  background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(59,130,246,0.04) 100%);
+}
+.dark .gradient-amber {
+  background: linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(245,158,11,0.04) 100%);
+}
+.dark .gradient-purple {
+  background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(139,92,246,0.04) 100%);
+}
+.dark .gradient-teal {
+  background: linear-gradient(135deg, rgba(20,184,166,0.08) 0%, rgba(20,184,166,0.04) 100%);
 }

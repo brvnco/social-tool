@@ -9,6 +9,6 @@
   "editorType": ["figma"],
   "networkAccess": {
     "allowedDomains": ["http://localhost:3000"],
-    "reasoning": "Fetches carousel brief data from the local Delta Social Tool server"
+    "reasoning": "Fetches carousel brief data from the local Content Factory server"
   }
 }

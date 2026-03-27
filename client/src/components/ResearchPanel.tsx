@@ -67,7 +67,7 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+    <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="font-bold text-lg text-delta-text">Research in Progress</h2>
         {connected && (

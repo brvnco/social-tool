@@ -88,7 +88,7 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
       </div>
 
       {/* Posting checklist */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h3 className="font-bold text-delta-text mb-4">Posting Checklist</h3>
         <div className="space-y-3">
           {[
@@ -115,7 +115,7 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
       </div>
 
       {/* Post ID form */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h3 className="font-bold text-delta-text mb-4">Enter Post IDs</h3>
         <p className="text-sm text-delta-muted mb-4">Optional — only needed if you want to track analytics for this post.</p>
         <div className="grid grid-cols-3 gap-4">
@@ -174,7 +174,7 @@ function CaptionBlock({ label, text }: { label: string; text: string }) {
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
-        <button onClick={copy} className="text-xs text-delta-green hover:text-emerald-700 font-medium">
+        <button onClick={copy} className="text-xs text-delta-green hover:text-delta-green font-medium">
           {copied ? '✓ Copied!' : 'Copy'}
         </button>
       </div>

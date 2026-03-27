@@ -92,7 +92,7 @@ function seedFigmaNodeMap() {
 }
 
 app.listen(PORT, () => {
-  console.log(`Delta Social Tool running on port ${PORT}`);
+  console.log(`Content Factory running on port ${PORT}`);
   seedFigmaNodeMap();
   startMonitorLoop();
 });

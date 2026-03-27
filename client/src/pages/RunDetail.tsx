@@ -149,7 +149,7 @@ export default function RunDetail() {
 
       {/* Vertical stepper */}
       <div className="w-56 shrink-0">
-        <div className="sticky top-24 bg-white rounded-3xl shadow-card border border-delta-border p-3">
+        <div className="sticky top-24 bg-delta-card rounded-3xl shadow-card border border-delta-border p-3">
           {STEPS.map((step, i) => {
             const isCurrent = i === currentStepIndex;
             const isPast = i < currentStepIndex;
@@ -226,7 +226,7 @@ export default function RunDetail() {
         {activeStepKey === 'researching' && (
           <>
             {(run.status === 'researching' || run.status === 'error') && (
-              <div className="bg-white rounded-3xl shadow-card border border-delta-border p-8 space-y-5">
+              <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-8 space-y-5">
                 <div>
                   <h2 className="font-bold text-xl text-delta-text">Discover Topics</h2>
                   <p className="text-delta-muted mt-1">Claude will propose 3 topic directions for this week's carousel.</p>
@@ -369,7 +369,7 @@ export default function RunDetail() {
 
 function StepNotReady({ label }: { label: string }) {
   return (
-    <div className="bg-white rounded-3xl shadow-card border border-delta-border p-10 text-center">
+    <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-10 text-center">
       <div className="w-12 h-12 rounded-2xl bg-delta-subtle mx-auto flex items-center justify-center mb-3">
         <span className="text-delta-muted text-xl">⏳</span>
       </div>
@@ -381,7 +381,7 @@ function StepNotReady({ label }: { label: string }) {
 
 function StepSummary({ title, details }: { title: string; details: { label: string; value: string }[] }) {
   return (
-    <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+    <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-6 h-6 rounded-lg bg-emerald-100 flex items-center justify-center">
           <span className="text-emerald-600 text-xs font-bold">✓</span>

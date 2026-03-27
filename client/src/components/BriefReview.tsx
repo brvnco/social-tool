@@ -19,7 +19,7 @@ function CopyBlock({ label, text }: { label: string; text: string }) {
     <div className="flex-1">
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
-        <button onClick={copy} className="text-xs text-delta-green hover:text-emerald-700 font-medium">
+        <button onClick={copy} className="text-xs text-delta-green hover:text-delta-green font-medium">
           {copied ? '✓ Copied!' : 'Copy'}
         </button>
       </div>
@@ -102,7 +102,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
       )}
 
       {/* Topic overview */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <div className="grid grid-cols-2 gap-5">
           <div>
             <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">Topic</p>
@@ -123,7 +123,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
                 <span
                   key={i}
                   className={`w-3.5 h-3.5 rounded-full ${
-                    i <= run.validation_score ? 'bg-delta-green' : 'bg-gray-200'
+                    i <= run.validation_score ? 'bg-delta-green' : 'bg-delta-border'
                   }`}
                 />
               ))}
@@ -143,7 +143,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
           </div>
         </div>
         {visualDirection.pro_angle && (
-          <div className="mt-5 inline-flex items-center gap-2 bg-emerald-50 px-4 py-1.5 rounded-xl border border-emerald-200">
+          <div className="mt-5 inline-flex items-center gap-2 bg-delta-green/5 px-4 py-1.5 rounded-xl border border-emerald-200">
             <span className="text-xs font-bold text-emerald-600">PRO</span>
             <span className="text-sm text-delta-text">{visualDirection.pro_angle}</span>
           </div>
@@ -161,11 +161,11 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
       </div>
 
       {/* Imagery plan */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h3 className="font-bold text-delta-text mb-4">Imagery Plan</h3>
         <div className="space-y-4 text-sm">
           {imagery.use_mockup && (
-            <div className="gradient-purple rounded-2xl p-5 border border-purple-200">
+            <div className="gradient-purple rounded-2xl p-5 border border-purple-200 dark:border-purple-500/30">
               <div className="flex items-center gap-2.5 mb-3">
                 <span className="text-lg">📱</span>
                 <p className="font-semibold text-delta-text">Phone Mockup (Weavy.ai)</p>
@@ -215,7 +215,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
 
       {/* Feedback input */}
       {!readOnly && showFeedback && (
-        <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
           <h3 className="font-bold text-delta-text mb-3">Request Changes</h3>
           <textarea
             value={feedback}

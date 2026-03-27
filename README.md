@@ -1,4 +1,4 @@
-# Delta Social Media Automation Tool
+# 🏭 Content Factory
 
 A full-stack web application that automates the weekly content pipeline for Delta (investment tracker by eToro). Handles research, content validation, carousel briefing, asset creation, and post-publish analytics.
 

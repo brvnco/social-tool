@@ -48,7 +48,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-xl text-delta-text mb-5">Post Published</h2>
 
         <div className="grid grid-cols-3 gap-5 mb-5">
@@ -77,7 +77,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
         )}
       </div>
 
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
         <div>
           <p className="text-sm text-delta-muted font-medium">Analytics Monitoring</p>
           <p className="text-xl font-bold text-delta-text mt-1">{countdown}</p>
@@ -93,7 +93,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
       </div>
 
       {(run.reach || run.saves || run.clicks) && (
-        <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
           <h3 className="font-bold text-delta-text mb-4">Latest Metrics</h3>
           <div className="grid grid-cols-3 gap-5">
             <MetricCard label="Reach" value={run.reach || 0} />
