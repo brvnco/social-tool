@@ -14,20 +14,20 @@ export default function AnalyticsCard({ run }: Props) {
 
   if (lowSaves && lowReach) {
     adjustmentNote = 'Try a more specific topic with a stronger hook next week';
-    noteBg = 'bg-red-50 border-red-200';
-    noteText = 'text-red-700';
+    noteBg = 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800';
+    noteText = 'text-red-700 dark:text-red-300';
   } else if (lowSaves) {
-    adjustmentNote = 'Good reach but low saves — go deeper on the topic next week';
-    noteBg = 'bg-amber-50 border-amber-200';
-    noteText = 'text-amber-700';
+    adjustmentNote = 'Good reach but low saves \u2014 go deeper on the topic next week';
+    noteBg = 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800';
+    noteText = 'text-amber-700 dark:text-amber-300';
   } else if (lowReach) {
-    adjustmentNote = 'High saves but low reach — try a broader hook to attract new eyes';
-    noteBg = 'bg-amber-50 border-amber-200';
-    noteText = 'text-amber-700';
+    adjustmentNote = 'High saves but low reach \u2014 try a broader hook to attract new eyes';
+    noteBg = 'bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800';
+    noteText = 'text-amber-700 dark:text-amber-300';
   } else {
-    adjustmentNote = 'Strong week — continue current direction';
-    noteBg = 'gradient-green border-emerald-200';
-    noteText = 'text-emerald-700';
+    adjustmentNote = 'Strong week \u2014 continue current direction';
+    noteBg = 'gradient-green border-emerald-200 dark:border-emerald-800';
+    noteText = 'text-emerald-700 dark:text-emerald-300';
   }
 
   return (
@@ -50,15 +50,15 @@ export default function AnalyticsCard({ run }: Props) {
 
       {/* Low indicators */}
       <div className="grid grid-cols-2 gap-4">
-        <div className={`rounded-2xl p-5 border ${lowReach ? 'bg-red-50 border-red-200' : 'gradient-green border-emerald-200'}`}>
+        <div className={`rounded-2xl p-5 border ${lowReach ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' : 'gradient-green border-emerald-200 dark:border-emerald-800'}`}>
           <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">Reach vs Average</p>
-          <p className={`text-lg font-bold mt-1 ${lowReach ? 'text-red-600' : 'text-emerald-600'}`}>
+          <p className={`text-lg font-bold mt-1 ${lowReach ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
             {lowReach ? 'Below average' : 'On track'}
           </p>
         </div>
-        <div className={`rounded-2xl p-5 border ${lowSaves ? 'bg-red-50 border-red-200' : 'gradient-green border-emerald-200'}`}>
+        <div className={`rounded-2xl p-5 border ${lowSaves ? 'bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800' : 'gradient-green border-emerald-200 dark:border-emerald-800'}`}>
           <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">Saves vs Average</p>
-          <p className={`text-lg font-bold mt-1 ${lowSaves ? 'text-red-600' : 'text-emerald-600'}`}>
+          <p className={`text-lg font-bold mt-1 ${lowSaves ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
             {lowSaves ? 'Below average' : 'On track'}
           </p>
         </div>
@@ -80,13 +80,13 @@ function MetricBlock({
 }) {
   return (
     <div className={`rounded-2xl p-4 text-center ${
-      low ? 'bg-red-50 border border-red-200' :
-      isScore ? 'gradient-green border border-emerald-200' :
+      low ? 'bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800' :
+      isScore ? 'gradient-green border border-emerald-200 dark:border-emerald-800' :
       'bg-delta-subtle border border-delta-border'
     }`}>
       <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
       <p className={`text-3xl font-bold mt-1 ${
-        low ? 'text-red-600' : isScore ? 'text-emerald-600' : 'text-delta-text'
+        low ? 'text-red-600 dark:text-red-400' : isScore ? 'text-emerald-600 dark:text-emerald-400' : 'text-delta-text'
       }`}>
         {typeof value === 'number' ? value.toLocaleString() : value}
       </p>

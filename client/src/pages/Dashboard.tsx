@@ -14,15 +14,15 @@ interface Run {
 }
 
 const STATUS_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  researching: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', label: 'New' },
-  picking: { bg: 'bg-indigo-50 dark:bg-indigo-500/10', text: 'text-indigo-600 dark:text-indigo-400', label: 'Pick Direction' },
-  briefing: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', label: 'Researching' },
-  pending_approval: { bg: 'bg-amber-50 dark:bg-amber-500/10', text: 'text-amber-600 dark:text-amber-400', label: 'Pending Approval' },
-  creating: { bg: 'bg-blue-50 dark:bg-blue-500/10', text: 'text-blue-600 dark:text-blue-400', label: 'Creating' },
-  ready: { bg: 'bg-emerald-50 dark:bg-emerald-500/10', text: 'text-emerald-600 dark:text-emerald-400', label: 'Ready to Post' },
-  posted: { bg: 'bg-teal-50 dark:bg-teal-500/10', text: 'text-teal-600 dark:text-teal-400', label: 'Posted' },
-  complete: { bg: 'bg-purple-50 dark:bg-purple-500/10', text: 'text-purple-600 dark:text-purple-400', label: 'Complete' },
-  error: { bg: 'bg-red-50 dark:bg-red-500/10', text: 'text-red-600 dark:text-red-400', label: 'Error' },
+  researching: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400', label: 'New' },
+  picking: { bg: 'bg-indigo-50 dark:bg-indigo-950', text: 'text-indigo-600 dark:text-indigo-400', label: 'Pick Direction' },
+  briefing: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400', label: 'Researching' },
+  pending_approval: { bg: 'bg-amber-50 dark:bg-amber-950', text: 'text-amber-600 dark:text-amber-400', label: 'Pending Approval' },
+  creating: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400', label: 'Creating' },
+  ready: { bg: 'bg-emerald-50 dark:bg-emerald-950', text: 'text-emerald-600 dark:text-emerald-400', label: 'Ready to Post' },
+  posted: { bg: 'bg-teal-50 dark:bg-teal-950', text: 'text-teal-600 dark:text-teal-400', label: 'Posted' },
+  complete: { bg: 'bg-purple-50 dark:bg-purple-950', text: 'text-purple-600 dark:text-purple-400', label: 'Complete' },
+  error: { bg: 'bg-red-50 dark:bg-red-950', text: 'text-red-600 dark:text-red-400', label: 'Error' },
 };
 
 export default function Dashboard() {
@@ -162,7 +162,7 @@ function StatCard({ label, sublabel, value, gradient }: { label: string; sublabe
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const config = STATUS_CONFIG[status] || { bg: 'bg-gray-100 dark:bg-gray-500/10', text: 'text-gray-500 dark:text-gray-400', label: status };
+  const config = STATUS_CONFIG[status] || { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-400', label: status };
   return (
     <span className={`px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text}`}>
       {config.label}

@@ -86,7 +86,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
         <button
           onClick={fetchNow}
           disabled={fetching}
-          className="bg-delta-green/10 text-delta-green px-5 py-2.5 rounded-xl text-sm hover:bg-delta-green/20 font-semibold disabled:opacity-50 transition"
+          className="bg-delta-accent/10 text-delta-accent px-5 py-2.5 rounded-xl text-sm hover:bg-delta-accent/20 font-semibold disabled:opacity-50 transition"
         >
           {fetching ? 'Fetching...' : 'Fetch Now'}
         </button>
@@ -108,7 +108,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="gradient-green rounded-2xl p-4 border border-emerald-100 text-center">
+    <div className="gradient-green rounded-2xl p-4 border border-emerald-100 dark:border-emerald-800 text-center">
       <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
       <p className="text-2xl font-bold text-delta-text mt-1">{value.toLocaleString()}</p>
     </div>

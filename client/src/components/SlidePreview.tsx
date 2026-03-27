@@ -11,7 +11,7 @@ export default function SlidePreview({ slide, index }: Props) {
     <div
       className={`rounded-2xl p-5 border ${
         isLast
-          ? 'gradient-green border-emerald-200'
+          ? 'gradient-green border-emerald-200 dark:border-emerald-800'
           : 'bg-delta-navy border-delta-navy'
       }`}
     >
@@ -26,7 +26,7 @@ export default function SlidePreview({ slide, index }: Props) {
           </span>
         )}
         {isLast && (
-          <span className="text-[10px] bg-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full font-medium">
+          <span className="text-[10px] bg-emerald-200 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full font-medium">
             CTA
           </span>
         )}
@@ -34,7 +34,7 @@ export default function SlidePreview({ slide, index }: Props) {
 
       {/* Content */}
       {isLast ? (
-        <p className="font-bold text-lg text-emerald-600">
+        <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
           {slide.cta}
         </p>
       ) : (
@@ -51,11 +51,11 @@ export default function SlidePreview({ slide, index }: Props) {
             </p>
           )}
           {slide.swipe_cta && (
-            <p className="text-delta-green text-xs mt-2 font-semibold">{slide.swipe_cta}</p>
+            <p className="text-delta-accent text-xs mt-2 font-semibold">{slide.swipe_cta}</p>
           )}
           {slide.pro_tip && (
-            <div className="mt-2 bg-delta-green/10 rounded-lg px-2.5 py-1.5">
-              <span className="text-[10px] text-delta-green font-bold">PRO </span>
+            <div className="mt-2 bg-delta-accent/10 rounded-lg px-2.5 py-1.5">
+              <span className="text-[10px] text-delta-accent font-bold">PRO </span>
               <span className="text-xs text-gray-400">{slide.pro_tip}</span>
             </div>
           )}

@@ -1,4 +1,4 @@
-import { generateText } from 'ai';
+import { generateText, streamText, type TextStreamPart } from 'ai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { openai } from '@ai-sdk/openai';
 import { google } from '@ai-sdk/google';
@@ -126,7 +126,7 @@ Return ONLY a JSON array of 3 objects. No other text, no markdown fences.`;
   const result = await callWithRetry(async () => {
     const opts: any = {
       model: getModelInstance(modelId),
-      maxTokens: 1024,
+      maxOutputTokens: 1024,
       prompt,
     };
 
@@ -141,7 +141,7 @@ Return ONLY a JSON array of 3 objects. No other text, no markdown fences.`;
     // Add Google search grounding for Gemini
     if (config.supportsWebSearch && config.provider === 'google') {
       opts.tools = {
-        google_search: google.tools.googleSearch(),
+        google_search: google.tools.googleSearch({}),
       };
       opts.maxSteps = 5;
     }
@@ -161,7 +161,7 @@ Return ONLY a JSON array of 3 objects. No other text, no markdown fences.`;
   return parsed;
 }
 
-// ── Phase 2: Build full brief for chosen topic ──
+// ── Phase 2: Build full brief for chosen topic (streaming) ──
 
 export async function buildBrief(
   direction: TopicDirection,
@@ -193,51 +193,37 @@ Return ONLY the JSON brief object as specified in your instructions. No other te
 
   sendEvent({ type: 'status', message: `Researching "${direction.topic}"...` });
 
-  const result = await callWithRetry(async () => {
-    const opts: any = {
-      model: getModelInstance(modelId),
-      maxTokens: 4096,
-      system: skillMd,
-      prompt,
+  const buildOpts: any = {
+    model: getModelInstance(modelId),
+    maxOutputTokens: 4096,
+    system: skillMd,
+    prompt,
+  };
+
+  if (config.supportsWebSearch && config.provider === 'anthropic') {
+    buildOpts.tools = {
+      web_search: anthropic.tools.webSearch_20250305(),
     };
-
-    // Add web search tools based on provider
-    if (config.supportsWebSearch && config.provider === 'anthropic') {
-      opts.tools = {
-        web_search: anthropic.tools.webSearch_20250305(),
-      };
-      opts.maxSteps = 10;
-    }
-
-    if (config.supportsWebSearch && config.provider === 'google') {
-      opts.tools = {
-        google_search: google.tools.googleSearch(),
-      };
-      opts.maxSteps = 10;
-    }
-
-    return generateText(opts);
-  });
-
-  // Log steps for debugging
-  if (result.steps) {
-    for (const step of result.steps) {
-      if (step.toolCalls) {
-        for (const tc of step.toolCalls) {
-          sendEvent({ type: 'search', query: (tc.args as any)?.query || tc.toolName });
-        }
-      }
-    }
+    buildOpts.maxSteps = 10;
   }
 
-  const text = cleanText(result.text);
+  if (config.supportsWebSearch && config.provider === 'google') {
+    buildOpts.tools = {
+      google_search: google.tools.googleSearch({}),
+    };
+    buildOpts.maxSteps = 10;
+  }
+
+  const result = await callWithRetryStream(
+    () => streamText(buildOpts),
+    sendEvent
+  );
+
+  const text = cleanText(result);
   console.log('Phase 2 text length:', text.length);
-  console.log('Phase 2 text (first 1000):', text.substring(0, 1000));
-  console.log('Phase 2 text (last 500):', text.substring(Math.max(0, text.length - 500)));
 
   const brief = parseJsonBrief(text);
   if (!brief) {
-    // Fallback: try to find the last complete JSON object
     const lastObj = extractLastJsonObject(text);
     if (lastObj && (lastObj.topic || lastObj.slides)) {
       console.log('Parsed brief via last-object fallback');
@@ -252,14 +238,19 @@ Return ONLY the JSON brief object as specified in your instructions. No other te
   return brief;
 }
 
-// ── Rewrite ──
+// ── Rewrite (streaming) ──
 
-export async function rewriteBrief(currentBrief: any, feedback: string): Promise<any> {
+export async function rewriteBrief(
+  currentBrief: any,
+  feedback: string,
+  sendEvent?: (data: any) => void
+): Promise<any> {
   const modelId = getSelectedModel('rewrite');
   const config = getModelConfig(modelId);
   const skillMd = loadSkillMd();
 
   console.log(`Rewrite using model: ${config.label} (${modelId})`);
+  sendEvent?.({ type: 'status', message: `Rewriting with ${config.label}...` });
 
   const prompt = `Here is the current brief that needs revision:
 
@@ -270,10 +261,33 @@ ${feedback}
 
 Revise the brief based on this feedback. Return ONLY the complete updated JSON brief object. No other text, no markdown fences.`;
 
+  if (sendEvent) {
+    // Streaming path
+    const text = await callWithRetryStream(
+      () => streamText({
+        model: getModelInstance(modelId),
+        maxOutputTokens: 4096,
+        system: skillMd,
+        prompt,
+      }),
+      sendEvent
+    );
+
+    const cleaned = cleanText(text);
+    const brief = parseJsonBrief(cleaned);
+    if (!brief) {
+      console.error('Rewrite parse failed. Text:', cleaned.substring(0, 500));
+      throw new Error('Failed to parse rewritten brief');
+    }
+    sendEvent({ type: 'brief', data: brief });
+    return brief;
+  }
+
+  // Non-streaming fallback
   const result = await callWithRetry(async () =>
     generateText({
       model: getModelInstance(modelId),
-      maxTokens: 4096,
+      maxOutputTokens: 4096,
       system: skillMd,
       prompt,
     })
@@ -300,6 +314,55 @@ function cleanText(text: string): string {
   // Strip markdown reference links [1], [2] etc that some models add
   cleaned = cleaned.replace(/\[\d+\]/g, '');
   return cleaned;
+}
+
+/**
+ * Stream-aware retry wrapper. Calls streamText, consumes the stream,
+ * emits real-time events (text deltas, tool calls), and returns the full text.
+ */
+async function callWithRetryStream(
+  fn: () => ReturnType<typeof streamText>,
+  sendEvent: (data: any) => void,
+  maxAttempts = 5,
+): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const stream = fn();
+      let fullText = '';
+
+      for await (const part of stream.fullStream) {
+        switch (part.type) {
+          case 'text-delta':
+            fullText += part.text;
+            sendEvent({ type: 'text-delta', delta: part.text });
+            break;
+          case 'tool-call':
+            sendEvent({
+              type: 'search',
+              query: (part as any).input?.query || part.toolName,
+            });
+            break;
+          case 'tool-result':
+            sendEvent({ type: 'status', message: 'Thinking...' });
+            break;
+        }
+      }
+
+      return fullText;
+    } catch (err: any) {
+      const status = err?.status || err?.statusCode || (err?.message?.includes('429') ? 429 : 0);
+      if (status === 429 && attempt < maxAttempts - 1) {
+        const retryAfter = err?.headers?.['retry-after'];
+        const waitSec = retryAfter ? Math.ceil(Number(retryAfter)) + 5 : 65;
+        console.log(`Rate limited (attempt ${attempt + 1}/${maxAttempts}). Waiting ${waitSec}s...`);
+        sendEvent({ type: 'status', message: `Rate limited. Retrying in ${waitSec}s...` });
+        await sleep(waitSec * 1000);
+        continue;
+      }
+      throw err;
+    }
+  }
+  throw new Error('Max retries exceeded');
 }
 
 async function callWithRetry<T>(fn: () => Promise<T>, maxAttempts = 5): Promise<T> {

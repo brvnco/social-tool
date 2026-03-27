@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import SlidePreview from './SlidePreview';
 
 interface Props {
@@ -34,12 +34,22 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
   const [feedback, setFeedback] = useState('');
   const [showFeedback, setShowFeedback] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rewriting, setRewriting] = useState(false);
+  const [rewriteStream, setRewriteStream] = useState('');
+  const [rewriteStatus, setRewriteStatus] = useState('');
+  const streamRef = useRef<HTMLDivElement>(null);
 
   const slides = JSON.parse(run.slides_json || '[]');
   const visualDirection = JSON.parse(run.visual_direction_json || '{}');
   const imagery = visualDirection.imagery || {};
   const flagged = visualDirection.flagged;
   const flaggedReason = visualDirection.flagged_reason;
+
+  useEffect(() => {
+    if (streamRef.current) {
+      streamRef.current.scrollTop = streamRef.current.scrollHeight;
+    }
+  }, [rewriteStream]);
 
   const approve = async () => {
     setLoading(true);
@@ -59,21 +69,57 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
 
   const requestChanges = async () => {
     if (!feedback.trim()) return;
-    setLoading(true);
+    setRewriting(true);
+    setRewriteStream('');
+    setRewriteStatus('');
+
     try {
-      const res = await fetch(`/api/runs/${run.id}/rewrite`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ feedback }),
-      });
-      if (!res.ok) throw new Error('Rewrite failed');
-      setFeedback('');
-      setShowFeedback(false);
-      onUpdate();
+      const es = new EventSource(
+        `/api/rewrite/${run.id}/stream?feedback=${encodeURIComponent(feedback)}`
+      );
+
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === 'text-delta') {
+            setRewriteStream(prev => prev + data.delta);
+            return;
+          }
+
+          if (data.type === 'status') {
+            setRewriteStatus(data.message);
+            return;
+          }
+
+          if (data.type === 'complete') {
+            es.close();
+            setRewriting(false);
+            setRewriteStream('');
+            setRewriteStatus('');
+            setFeedback('');
+            setShowFeedback(false);
+            onUpdate();
+            return;
+          }
+
+          if (data.type === 'error') {
+            es.close();
+            setRewriting(false);
+            onError(data.message);
+          }
+        } catch {}
+      };
+
+      es.onerror = () => {
+        es.close();
+        setRewriting(false);
+        onError('Connection lost during rewrite');
+      };
     } catch (err: any) {
+      setRewriting(false);
       onError(err.message);
     }
-    setLoading(false);
   };
 
   const reject = async () => {
@@ -95,9 +141,9 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
     <div className="space-y-6">
       {/* Flagged warning */}
       {flagged && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
-          <p className="text-amber-700 font-semibold">⚠ Topic flagged for review</p>
-          <p className="text-amber-600/70 text-sm mt-1">{flaggedReason}</p>
+        <div className="bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 rounded-2xl p-5">
+          <p className="text-amber-700 dark:text-amber-300 font-semibold">Topic flagged for review</p>
+          <p className="text-amber-600/70 dark:text-amber-400/70 text-sm mt-1">{flaggedReason}</p>
         </div>
       )}
 
@@ -132,7 +178,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
           </div>
           <div>
             <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">Delta Feature</p>
-            <p className="text-emerald-600 font-semibold mt-1 capitalize">{run.delta_feature}</p>
+            <p className="text-delta-green font-semibold mt-1 capitalize">{run.delta_feature}</p>
             {visualDirection.delta_feature_secondary && (
               <p className="text-delta-muted text-sm">+ {visualDirection.delta_feature_secondary}</p>
             )}
@@ -143,8 +189,8 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
           </div>
         </div>
         {visualDirection.pro_angle && (
-          <div className="mt-5 inline-flex items-center gap-2 bg-delta-green/5 px-4 py-1.5 rounded-xl border border-emerald-200">
-            <span className="text-xs font-bold text-emerald-600">PRO</span>
+          <div className="mt-5 inline-flex items-center gap-2 bg-delta-green/10 px-4 py-1.5 rounded-xl border border-delta-green/20">
+            <span className="text-xs font-bold text-delta-green">PRO</span>
             <span className="text-sm text-delta-text">{visualDirection.pro_angle}</span>
           </div>
         )}
@@ -165,10 +211,9 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
         <h3 className="font-bold text-delta-text mb-4">Imagery Plan</h3>
         <div className="space-y-4 text-sm">
           {imagery.use_mockup && (
-            <div className="gradient-purple rounded-2xl p-5 border border-purple-200 dark:border-purple-500/30">
+            <div className="gradient-purple rounded-2xl p-5 border border-purple-200 dark:border-purple-800">
               <div className="flex items-center gap-2.5 mb-3">
-                <span className="text-lg">📱</span>
-                <p className="font-semibold text-delta-text">Phone Mockup (Weavy.ai)</p>
+                <span className="text-lg">Phone Mockup (Weavy.ai)</span>
               </div>
               <div className="space-y-2 ml-7">
                 <div>
@@ -183,10 +228,9 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
             </div>
           )}
           {imagery.use_spanning_image && (
-            <div className="gradient-blue rounded-2xl p-5 border border-blue-200">
+            <div className="gradient-blue rounded-2xl p-5 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2.5 mb-2">
-                <span className="text-lg">🖼</span>
-                <p className="font-semibold text-delta-text">Spanning Image (Slides 1–2)</p>
+                <span className="text-lg">Spanning Image (Slides 1-2)</span>
               </div>
               <p className="text-delta-muted ml-7">{imagery.spanning_image_description}</p>
             </div>
@@ -213,8 +257,28 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
         </div>
       )}
 
+      {/* Rewrite stream panel */}
+      {rewriting && (
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6 space-y-3">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-delta-text">Rewriting Brief</h3>
+            <span className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-medium">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+              {rewriteStatus || 'Streaming...'}
+            </span>
+          </div>
+          <div
+            ref={streamRef}
+            className="bg-delta-subtle rounded-2xl p-5 font-mono text-xs h-48 overflow-y-auto scrollbar-thin border border-delta-border text-delta-text whitespace-pre-wrap break-words"
+          >
+            {rewriteStream}
+            <span className="inline-block w-1.5 h-4 bg-amber-500 animate-pulse ml-0.5 align-text-bottom" />
+          </div>
+        </div>
+      )}
+
       {/* Feedback input */}
-      {!readOnly && showFeedback && (
+      {!readOnly && showFeedback && !rewriting && (
         <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
           <h3 className="font-bold text-delta-text mb-3">Request Changes</h3>
           <textarea
@@ -227,9 +291,9 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
             <button
               onClick={requestChanges}
               disabled={loading || !feedback.trim()}
-              className="bg-amber-100 text-amber-700 px-5 py-2.5 rounded-xl text-sm hover:bg-amber-200 font-semibold disabled:opacity-50"
+              className="bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-5 py-2.5 rounded-xl text-sm hover:bg-amber-200 dark:hover:bg-amber-800 font-semibold disabled:opacity-50"
             >
-              {loading ? 'Rewriting...' : 'Submit Feedback'}
+              Submit Feedback
             </button>
             <button
               onClick={() => setShowFeedback(false)}
@@ -242,7 +306,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
       )}
 
       {/* Action buttons */}
-      {!readOnly && (
+      {!readOnly && !rewriting && (
         <div className="flex gap-3">
           <button
             onClick={approve}
@@ -254,14 +318,14 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
           <button
             onClick={() => setShowFeedback(true)}
             disabled={loading || showFeedback}
-            className="bg-amber-100 text-amber-700 font-semibold px-7 py-3 rounded-2xl hover:bg-amber-200 transition disabled:opacity-50"
+            className="bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 font-semibold px-7 py-3 rounded-2xl hover:bg-amber-200 dark:hover:bg-amber-800 transition disabled:opacity-50"
           >
             Request Changes
           </button>
           <button
             onClick={reject}
             disabled={loading}
-            className="bg-red-50 text-red-600 font-semibold px-7 py-3 rounded-2xl hover:bg-red-100 transition disabled:opacity-50"
+            className="bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400 font-semibold px-7 py-3 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900 transition disabled:opacity-50"
           >
             Reject
           </button>

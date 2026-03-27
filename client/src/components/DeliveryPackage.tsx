@@ -64,13 +64,13 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
 
       {/* Local folder */}
       {run.drive_folder_url && (
-        <div className="gradient-green rounded-3xl border border-emerald-200 p-6">
+        <div className="gradient-green rounded-3xl border border-emerald-200 dark:border-emerald-800 p-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-              <span className="text-2xl">📁</span>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+              <span className="text-2xl">&#128193;</span>
             </div>
             <div>
-              <p className="font-bold text-emerald-700">Slides saved locally</p>
+              <p className="font-bold text-emerald-700 dark:text-emerald-300">Slides saved locally</p>
               <code className="text-sm text-delta-muted mt-0.5 block font-mono">exports/{run.id}/</code>
             </div>
           </div>

@@ -17,10 +17,10 @@ interface Props {
 }
 
 const FEATURE_COLORS: Record<string, { bg: string; text: string }> = {
-  Link: { bg: 'bg-blue-50', text: 'text-blue-600' },
-  Track: { bg: 'bg-emerald-50', text: 'text-emerald-600' },
-  Update: { bg: 'bg-amber-50', text: 'text-amber-600' },
-  Discover: { bg: 'bg-purple-50', text: 'text-purple-600' },
+  Link: { bg: 'bg-blue-50 dark:bg-blue-950', text: 'text-blue-600 dark:text-blue-400' },
+  Track: { bg: 'bg-emerald-50 dark:bg-emerald-950', text: 'text-emerald-600 dark:text-emerald-400' },
+  Update: { bg: 'bg-amber-50 dark:bg-amber-950', text: 'text-amber-600 dark:text-amber-400' },
+  Discover: { bg: 'bg-purple-50 dark:bg-purple-950', text: 'text-purple-600 dark:text-purple-400' },
 };
 
 export default function DirectionPicker({ runId, directions, onPicked, onError }: Props) {
@@ -51,7 +51,7 @@ export default function DirectionPicker({ runId, directions, onPicked, onError }
 
       <div className="space-y-4">
         {directions.map((d, i) => {
-          const colors = FEATURE_COLORS[d.delta_feature] || { bg: 'bg-gray-50', text: 'text-gray-600' };
+          const colors = FEATURE_COLORS[d.delta_feature] || { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-600 dark:text-gray-400' };
 
           return (
             <button
