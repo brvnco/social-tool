@@ -48,7 +48,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h2 className="font-bold text-xl text-delta-text mb-5">Post Published</h2>
 
         <div className="grid grid-cols-3 gap-5 mb-5">
@@ -77,7 +77,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
         )}
       </div>
 
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
         <div>
           <p className="text-sm text-delta-muted font-medium">Analytics Monitoring</p>
           <p className="text-xl font-bold text-delta-text mt-1">{countdown}</p>
@@ -86,14 +86,14 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
         <button
           onClick={fetchNow}
           disabled={fetching}
-          className="bg-delta-green/10 text-delta-green px-5 py-2.5 rounded-xl text-sm hover:bg-delta-green/20 font-semibold disabled:opacity-50 transition"
+          className="bg-delta-accent/10 text-delta-accent px-5 py-2.5 rounded-xl text-sm hover:bg-delta-accent/20 font-semibold disabled:opacity-50 transition"
         >
           {fetching ? 'Fetching...' : 'Fetch Now'}
         </button>
       </div>
 
       {(run.reach || run.saves || run.clicks) && (
-        <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+        <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
           <h3 className="font-bold text-delta-text mb-4">Latest Metrics</h3>
           <div className="grid grid-cols-3 gap-5">
             <MetricCard label="Reach" value={run.reach || 0} />
@@ -108,7 +108,7 @@ export default function PostIdForm({ run, onUpdate, onError }: Props) {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="gradient-green rounded-2xl p-4 border border-emerald-100 text-center">
+    <div className="gradient-green rounded-2xl p-4 border border-emerald-100 dark:border-emerald-800 text-center">
       <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
       <p className="text-2xl font-bold text-delta-text mt-1">{value.toLocaleString()}</p>
     </div>

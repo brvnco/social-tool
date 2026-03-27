@@ -53,7 +53,7 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
                 <img
                   src={src}
                   alt={`Slide ${i + 1}`}
-                  className="rounded-2xl border border-delta-border group-hover:border-delta-green/40 shadow-card group-hover:shadow-card-hover transition w-full"
+                  className="rounded-2xl border border-delta-border group-hover:border-delta-accent/40 shadow-card group-hover:shadow-card-hover transition w-full"
                 />
                 <p className="text-[10px] text-delta-muted text-center mt-1.5 font-medium">Slide {i + 1}</p>
               </a>
@@ -64,13 +64,13 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
 
       {/* Local folder */}
       {run.drive_folder_url && (
-        <div className="gradient-green rounded-3xl border border-emerald-200 p-6">
+        <div className="gradient-green rounded-3xl border border-emerald-200 dark:border-emerald-800 p-6">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center">
-              <span className="text-2xl">📁</span>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
+              <span className="text-2xl">&#128193;</span>
             </div>
             <div>
-              <p className="font-bold text-emerald-700">Slides saved locally</p>
+              <p className="font-bold text-emerald-700 dark:text-emerald-300">Slides saved locally</p>
               <code className="text-sm text-delta-muted mt-0.5 block font-mono">exports/{run.id}/</code>
             </div>
           </div>
@@ -88,7 +88,7 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
       </div>
 
       {/* Posting checklist */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h3 className="font-bold text-delta-text mb-4">Posting Checklist</h3>
         <div className="space-y-3">
           {[
@@ -115,7 +115,7 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
       </div>
 
       {/* Post ID form */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h3 className="font-bold text-delta-text mb-4">Enter Post IDs</h3>
         <p className="text-sm text-delta-muted mb-4">Optional — only needed if you want to track analytics for this post.</p>
         <div className="grid grid-cols-3 gap-4">
@@ -153,7 +153,7 @@ export default function DeliveryPackage({ run, onUpdate, onError }: Props) {
         <button
           onClick={markPosted}
           disabled={submitting}
-          className="mt-5 bg-delta-green text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+          className="mt-5 bg-delta-accent text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
         >
           {submitting ? 'Saving...' : 'Mark as Posted'}
         </button>
@@ -174,8 +174,8 @@ function CaptionBlock({ label, text }: { label: string; text: string }) {
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <p className="text-xs text-delta-muted uppercase tracking-wider font-medium">{label}</p>
-        <button onClick={copy} className="text-xs text-delta-green hover:text-emerald-700 font-medium">
-          {copied ? '✓ Copied!' : 'Copy'}
+        <button onClick={copy} className="text-xs text-delta-accent hover:opacity-80 font-medium">
+          {copied ? '\u2713 Copied!' : 'Copy'}
         </button>
       </div>
       <pre className="bg-delta-subtle border border-delta-border rounded-2xl p-4 text-sm text-delta-text whitespace-pre-wrap max-h-64 overflow-y-auto scrollbar-thin">

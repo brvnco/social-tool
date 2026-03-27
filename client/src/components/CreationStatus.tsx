@@ -81,7 +81,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
   return (
     <div className="space-y-6">
       {/* Figma link */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-green/20 p-6">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-accent/20 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-delta-subtle flex items-center justify-center">
@@ -103,9 +103,9 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
               href={figmaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-delta-green text-white font-semibold px-6 py-2.5 rounded-2xl hover:shadow-glow text-sm transition"
+              className="bg-delta-accent text-white font-semibold px-6 py-2.5 rounded-2xl hover:shadow-glow text-sm transition"
             >
-              Open Figma →
+              Open Figma &rarr;
             </a>
           )}
         </div>
@@ -116,9 +116,9 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         <h2 className="font-bold text-lg text-delta-text">Slide Content</h2>
         <button
           onClick={copyAllSlideText}
-          className="text-sm text-delta-green hover:text-emerald-700 border border-delta-green/30 px-4 py-2 rounded-xl font-medium hover:bg-emerald-50 transition"
+          className="text-sm text-delta-accent border border-delta-accent/30 px-4 py-2 rounded-xl font-medium hover:bg-delta-accent/10 transition"
         >
-          {copiedField === 'all' ? '✓ Copied all!' : 'Copy all text'}
+          {copiedField === 'all' ? '\u2713 Copied all!' : 'Copy all text'}
         </button>
       </div>
 
@@ -134,15 +134,15 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
               key={i}
               className={`rounded-2xl p-5 border ${
                 isCtaSlide
-                  ? 'gradient-green border-emerald-200'
-                  : 'bg-white shadow-card border-delta-border'
+                  ? 'gradient-green border-emerald-200 dark:border-emerald-800'
+                  : 'bg-delta-card shadow-card border-delta-border'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <span className={`text-xs font-bold uppercase tracking-wider ${
-                  isCtaSlide ? 'text-emerald-600' : 'text-delta-muted'
+                  isCtaSlide ? 'text-emerald-600 dark:text-emerald-400' : 'text-delta-muted'
                 }`}>
-                  Slide {num}{isCtaSlide ? ' — CTA' : num === 1 ? ' — Hook' : ''}
+                  Slide {num}{isCtaSlide ? ' \u2014 CTA' : num === 1 ? ' \u2014 Hook' : ''}
                 </span>
                 <span className="text-[10px] text-delta-muted bg-delta-subtle px-2 py-0.5 rounded-full">
                   {fields.length} field{fields.length !== 1 ? 's' : ''}
@@ -156,9 +156,9 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                       <span className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">{field.label}</span>
                       <button
                         onClick={() => copyText(field.value, field.key)}
-                        className="text-[10px] text-delta-green/70 hover:text-delta-green font-medium"
+                        className="text-[10px] text-delta-accent/70 hover:text-delta-accent font-medium"
                       >
-                        {copiedField === field.key ? '✓' : 'Copy'}
+                        {copiedField === field.key ? '\u2713' : 'Copy'}
                       </button>
                     </div>
                     <p className={`text-sm ${
@@ -184,10 +184,10 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         return (
           <>
             {imagery.use_mockup && (
-              <div className="bg-white rounded-3xl shadow-card border border-purple-200 p-6">
+              <div className="bg-delta-card rounded-3xl shadow-card border border-purple-200 dark:border-purple-800 p-6">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center text-xl">
-                    📱
+                  <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950 flex items-center justify-center text-xl">
+                    &#128241;
                   </div>
                   <div>
                     <p className="font-bold text-delta-text">Weavy.ai Mockup</p>
@@ -196,44 +196,44 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                 </div>
 
                 <div className="space-y-3">
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100">
+                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 1 — Delta App Screen to Use</p>
                       <button
                         onClick={() => copyText(imagery.mockup_screen || '', 'mockup-screen')}
-                        className="text-[10px] text-purple-500 hover:text-purple-700 font-medium"
+                        className="text-[10px] text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                       >
-                        {copiedField === 'mockup-screen' ? '✓' : 'Copy'}
+                        {copiedField === 'mockup-screen' ? '\u2713' : 'Copy'}
                       </button>
                     </div>
                     <p className="text-sm text-delta-text font-semibold">{imagery.mockup_screen}</p>
                   </div>
 
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100">
+                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
                     <div className="flex items-center justify-between mb-1">
                       <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 2 — Weavy Mockup Generation Prompt</p>
                       <button
                         onClick={() => copyText(imagery.mockup_prompt || '', 'mockup-prompt')}
-                        className="text-[10px] text-purple-500 hover:text-purple-700 font-medium"
+                        className="text-[10px] text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                       >
-                        {copiedField === 'mockup-prompt' ? '✓' : 'Copy'}
+                        {copiedField === 'mockup-prompt' ? '\u2713' : 'Copy'}
                       </button>
                     </div>
                     <p className="text-sm text-delta-muted italic">{imagery.mockup_prompt}</p>
                   </div>
 
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100">
+                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
                     <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium mb-2">Step 3 — Generate in Weavy</p>
                     <div className="flex items-center gap-3">
                       <a
                         href="https://weavy.ai"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-purple-100 text-purple-700 px-5 py-2.5 rounded-xl text-sm hover:bg-purple-200 inline-flex items-center gap-2 font-semibold transition"
+                        className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-5 py-2.5 rounded-xl text-sm hover:bg-purple-200 dark:hover:bg-purple-800 inline-flex items-center gap-2 font-semibold transition"
                       >
-                        Open Weavy.ai →
+                        Open Weavy.ai &rarr;
                       </a>
-                      <p className="text-xs text-delta-muted">Generate mockup → replace screen → download</p>
+                      <p className="text-xs text-delta-muted">Generate mockup &rarr; replace screen &rarr; download</p>
                     </div>
                   </div>
                 </div>
@@ -241,10 +241,10 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
             )}
 
             {imagery.use_spanning_image && (
-              <div className="bg-white rounded-3xl shadow-card border border-delta-border p-5">
+              <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-5">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-lg">🖼</span>
-                  <p className="font-bold text-sm text-delta-text">Spanning Image (Slides 1–2)</p>
+                  <span className="text-lg">&#128444;</span>
+                  <p className="font-bold text-sm text-delta-text">Spanning Image (Slides 1&ndash;2)</p>
                 </div>
                 <p className="text-sm text-delta-muted ml-8">{imagery.spanning_image_description}</p>
               </div>
@@ -254,7 +254,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
       })()}
 
       {/* Mark as ready */}
-      <div className="bg-white rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
+      <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6 flex items-center justify-between">
         <div>
           <p className="font-bold text-delta-text">Done editing in Figma?</p>
           <p className="text-sm text-delta-muted">
@@ -264,7 +264,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         <button
           onClick={markReady}
           disabled={markingReady}
-          className="bg-delta-green text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+          className="bg-delta-accent text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
         >
           {markingReady ? 'Exporting...' : 'Mark as Ready'}
         </button>
