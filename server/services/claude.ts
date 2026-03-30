@@ -22,9 +22,9 @@ export const AVAILABLE_MODELS: ModelOption[] = [
   { id: 'claude-sonnet-4-6-20250514', label: 'Claude Sonnet 4.6', provider: 'anthropic', supportsWebSearch: true, costTier: 'medium' },
   { id: 'claude-opus-4-0-20250514', label: 'Claude Opus 4', provider: 'anthropic', supportsWebSearch: true, costTier: 'high' },
   // OpenAI
-  { id: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai', supportsWebSearch: false, costTier: 'low' },
-  { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai', supportsWebSearch: false, costTier: 'medium' },
-  { id: 'o3-mini', label: 'o3-mini', provider: 'openai', supportsWebSearch: false, costTier: 'medium' },
+  { id: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai', supportsWebSearch: true, costTier: 'low' },
+  { id: 'gpt-4o', label: 'GPT-4o', provider: 'openai', supportsWebSearch: true, costTier: 'medium' },
+  { id: 'o3-mini', label: 'o3-mini', provider: 'openai', supportsWebSearch: true, costTier: 'medium' },
   // Google
   { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash', provider: 'google', supportsWebSearch: true, costTier: 'low' },
   { id: 'gemini-2.5-pro-preview-06-05', label: 'Gemini 2.5 Pro', provider: 'google', supportsWebSearch: true, costTier: 'medium' },
@@ -96,21 +96,37 @@ export async function proposeDirections(context: ResearchContext): Promise<Topic
   const config = getModelConfig(modelId);
   console.log(`Phase 1 using model: ${config.label} (${modelId})`);
 
+  const today = new Date().toISOString().split('T')[0];
+
   const prompt = `You are a social media strategist for Delta, an investment portfolio tracker app by eToro.
+Today's date: ${today}
 
-Propose exactly 3 topic directions for this week's Instagram/LinkedIn carousel post.
+Your job: search the web for the biggest financial/investing stories from the PAST 1-2 WEEKS, then propose exactly 3 topic directions for this week's Instagram/LinkedIn carousel post.
 
-Context:
+## Research guidelines
+1. **Search first.** Look up recent financial news, market moves, earnings, macro events, and trending investing topics from the last 7-14 days. Do NOT rely on training data — verify what is actually happening right now.
+2. **Relevance to Delta users.** Delta users are retail investors who track stocks, crypto, ETFs, and multi-exchange portfolios. Topics must be things they care about: market moves, portfolio strategy, earnings season, sector rotations, macro events (Fed, inflation, GDP), crypto trends, or investing education tied to current events.
+3. **Timeliness is mandatory.** Every topic must have a clear "why now" rooted in something that happened in the last 1-2 weeks (e.g. an earnings report, a Fed decision, a market milestone, a policy change, a sector breakout). Generic evergreen topics are not acceptable.
+4. **Variety.** Propose 3 distinct angles — e.g. one macro/market-wide, one sector/stock-specific, one portfolio strategy or crypto angle.
+
+## Context
 - Last topic: ${context.last_topic || 'None (first run)'}
-- Topics to avoid: ${context.recent_topics.length ? context.recent_topics.join(', ') : 'None'}
+- Topics to avoid (already covered recently): ${context.recent_topics.length ? context.recent_topics.join(', ') : 'None'}
 - Low saves last week: ${context.low_saves ? 'Yes' : 'No'}
 - Low reach last week: ${context.low_reach ? 'Yes' : 'No'}
-${context.low_saves ? '- Since saves were low, propose more specific/niche topics\n' : ''}${context.low_reach ? '- Since reach was low, propose topics with broader appeal\n' : ''}
+${context.low_saves ? '- Since saves were low, propose more specific/niche topics with actionable takeaways\n' : ''}${context.low_reach ? '- Since reach was low, propose topics with broader appeal and attention-grabbing hooks\n' : ''}
 
+## Delta features (pick the most relevant per topic)
+- **Link**: connecting brokers/exchanges/wallets — for onboarding, consolidation angles
+- **Track**: portfolio performance, gains/losses, allocation — PRO: Portfolio Insights (AI diversification analysis)
+- **Update**: alerts, earnings calendar — PRO: Why Is It Moving, Insider Trades
+- **Discover**: trending assets, curated insights — PRO: Delta AI Summaries
+
+## Output format
 For each direction, provide:
-- topic: the topic (e.g. "Dividend Aristocrats in 2025")
-- angle: the content angle (e.g. "5 stocks that raised dividends for 25+ years")
-- why_now: why this is timely
+- topic: specific topic title (e.g. "Fed Holds Rates Steady — What It Means for Your Portfolio")
+- angle: the content angle (e.g. "3 sectors that historically rally after a rate pause")
+- why_now: cite the specific recent event/data point that makes this timely
 - delta_feature: which Delta feature to highlight (Link, Track, Update, or Discover)
 - hook: a punchy slide 1 headline (max 8 words)
 - score: your confidence score 1-5
@@ -136,6 +152,17 @@ Return ONLY a JSON array of 3 objects. No other text, no markdown fences.`;
         web_search: anthropic.tools.webSearch_20250305(),
       };
       opts.maxSteps = 5;
+    }
+
+    // Add OpenAI web search + force JSON output
+    if (config.provider === 'openai') {
+      opts.responseFormat = { type: 'json' as const };
+      if (config.supportsWebSearch) {
+        opts.tools = {
+          web_search: openai.tools.webSearch(),
+        };
+        opts.maxSteps = 5;
+      }
     }
 
     // Add Google search grounding for Gemini
@@ -207,6 +234,17 @@ Return ONLY the JSON brief object as specified in your instructions. No other te
     buildOpts.maxSteps = 10;
   }
 
+  // Force JSON output for OpenAI + web search
+  if (config.provider === 'openai') {
+    buildOpts.responseFormat = { type: 'json' as const };
+    if (config.supportsWebSearch) {
+      buildOpts.tools = {
+        web_search: openai.tools.webSearch(),
+      };
+      buildOpts.maxSteps = 10;
+    }
+  }
+
   if (config.supportsWebSearch && config.provider === 'google') {
     buildOpts.tools = {
       google_search: google.tools.googleSearch({}),
@@ -263,13 +301,17 @@ Revise the brief based on this feedback. Return ONLY the complete updated JSON b
 
   if (sendEvent) {
     // Streaming path
+    const streamOpts: any = {
+      model: getModelInstance(modelId),
+      maxOutputTokens: 4096,
+      system: skillMd,
+      prompt,
+    };
+    if (config.provider === 'openai') {
+      streamOpts.responseFormat = { type: 'json' as const };
+    }
     const text = await callWithRetryStream(
-      () => streamText({
-        model: getModelInstance(modelId),
-        maxOutputTokens: 4096,
-        system: skillMd,
-        prompt,
-      }),
+      () => streamText(streamOpts),
       sendEvent
     );
 
@@ -284,14 +326,16 @@ Revise the brief based on this feedback. Return ONLY the complete updated JSON b
   }
 
   // Non-streaming fallback
-  const result = await callWithRetry(async () =>
-    generateText({
-      model: getModelInstance(modelId),
-      maxOutputTokens: 4096,
-      system: skillMd,
-      prompt,
-    })
-  );
+  const genOpts: any = {
+    model: getModelInstance(modelId),
+    maxOutputTokens: 4096,
+    system: skillMd,
+    prompt,
+  };
+  if (config.provider === 'openai') {
+    genOpts.responseFormat = { type: 'json' as const };
+  }
+  const result = await callWithRetry(async () => generateText(genOpts));
 
   const text = cleanText(result.text);
   const brief = parseJsonBrief(text);
@@ -305,14 +349,19 @@ Revise the brief based on this feedback. Return ONLY the complete updated JSON b
 // ── Helpers ──
 
 function cleanText(text: string): string {
-  // Strip citation/source tags from any provider
   let cleaned = text;
+  // Strip citation/source tags from any provider
   cleaned = cleaned.replace(/<cite[^>]*>.*?<\/cite>/gs, '');
   cleaned = cleaned.replace(/<\/?cite[^>]*>/g, '');
   cleaned = cleaned.replace(/<\/?source[^>]*>/g, '');
   cleaned = cleaned.replace(/<\/?search_result[^>]*>/g, '');
   // Strip markdown reference links [1], [2] etc that some models add
   cleaned = cleaned.replace(/\[\d+\]/g, '');
+  // Strip markdown links [text](url) → text (OpenAI web search embeds these)
+  // Use \n exclusion to prevent matching across lines (which would eat JSON brackets)
+  cleaned = cleaned.replace(/\[([^\]\n]{1,200})\]\([^)\n]*\)/g, '$1');
+  // Strip raw URLs in parentheses that some models add as citations
+  cleaned = cleaned.replace(/\(https?:\/\/[^)\n]+\)/g, '');
   return cleaned;
 }
 
@@ -398,10 +447,101 @@ function parseJsonArray(text: string): any[] | null {
       return JSON.parse(candidate);
     } catch {
       try {
-        return JSON.parse(candidate.replace(/,\s*([\]}])/g, '$1'));
+        return JSON.parse(fixJsonString(candidate));
       } catch {}
     }
   }
+  return null;
+}
+
+function fixJsonString(json: string): string {
+  let fixed = json;
+  // Remove trailing commas before } or ]
+  fixed = fixed.replace(/,\s*([\]}])/g, '$1');
+  // Fix unescaped control characters inside JSON string values
+  // and escape inner double quotes that aren't structural
+  let result = '';
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < fixed.length; i++) {
+    const ch = fixed[i];
+    if (escape) {
+      result += ch;
+      escape = false;
+      continue;
+    }
+    if (ch === '\\') {
+      result += ch;
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      if (!inString) {
+        // Opening quote — entering a string
+        inString = true;
+        result += ch;
+      } else {
+        // We're inside a string and hit a quote.
+        // Determine if this is the closing quote or an unescaped inner quote.
+        // A closing quote is followed by structural JSON: , } ] : or whitespace before those
+        const rest = fixed.substring(i + 1).trimStart();
+        const nextChar = rest[0];
+        if (nextChar === ',' || nextChar === '}' || nextChar === ']' || nextChar === ':' || nextChar === undefined) {
+          // Structural — this is the closing quote
+          inString = false;
+          result += ch;
+        } else {
+          // Inner quote — escape it
+          result += '\\"';
+        }
+      }
+      continue;
+    }
+    if (inString && ch === '\n') {
+      result += '\\n';
+      continue;
+    }
+    if (inString && ch === '\r') {
+      result += '\\r';
+      continue;
+    }
+    if (inString && ch === '\t') {
+      result += '\\t';
+      continue;
+    }
+    result += ch;
+  }
+  return result;
+}
+
+/**
+ * Extract the first balanced JSON object from text by tracking brace depth.
+ * This avoids the lastIndexOf('}') trap when models dump extra text after the JSON.
+ */
+function extractFirstJsonObject(text: string): string | null {
+  const start = text.indexOf('{');
+  if (start === -1) return null;
+
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+    if (esc) { esc = false; continue; }
+    if (ch === '\\' && inStr) { esc = true; continue; }
+    if (ch === '"') { inStr = !inStr; continue; }
+    if (inStr) continue;
+    if (ch === '{') depth++;
+    if (ch === '}') {
+      depth--;
+      if (depth === 0) {
+        return text.substring(start, i + 1);
+      }
+    }
+  }
+  // Unbalanced — fall back to first { to last }
+  const lastBrace = text.lastIndexOf('}');
+  if (lastBrace > start) return text.substring(start, lastBrace + 1);
   return null;
 }
 
@@ -411,20 +551,43 @@ function parseJsonBrief(text: string): any {
   cleaned = cleaned.replace(/\n?```\s*$/gm, '');
   cleaned = cleaned.trim();
 
+  const candidate = extractFirstJsonObject(cleaned);
+  if (!candidate) return null;
+
+  // Try parsing the balanced extraction directly
+  try {
+    const parsed = JSON.parse(candidate);
+    validateBrief(parsed);
+    return stripCitationsFromValues(parsed);
+  } catch (e) {
+    const errMsg = (e as Error).message;
+    console.error('JSON parse error:', errMsg);
+    const posMatch = errMsg.match(/position (\d+)/);
+    if (posMatch) {
+      const pos = Number(posMatch[1]);
+      console.error('JSON context around error:', JSON.stringify(candidate.substring(Math.max(0, pos - 80), pos + 80)));
+    }
+    // Try fixing common issues (unescaped quotes, newlines, trailing commas)
+    try {
+      const fixed = fixJsonString(candidate);
+      const parsed = JSON.parse(fixed);
+      validateBrief(parsed);
+      return stripCitationsFromValues(parsed);
+    } catch (e2) {
+      console.error('JSON fix attempt also failed:', (e2 as Error).message);
+    }
+  }
+
+  // Last resort: try first { to last } in case balanced extraction cut short
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace !== -1 && lastBrace > firstBrace) {
-    const candidate = cleaned.substring(firstBrace, lastBrace + 1);
-    try {
-      const parsed = JSON.parse(candidate);
-      validateBrief(parsed);
-      return stripCitationsFromValues(parsed);
-    } catch (e) {
-      console.error('JSON parse error:', (e as Error).message);
+    const fallback = cleaned.substring(firstBrace, lastBrace + 1);
+    if (fallback !== candidate) {
       try {
-        const fixed = candidate.replace(/,\s*([\]}])/g, '$1');
-        const parsed = JSON.parse(fixed);
+        const parsed = JSON.parse(fixJsonString(fallback));
         validateBrief(parsed);
+        console.log('Parsed brief via first-to-last fallback');
         return stripCitationsFromValues(parsed);
       } catch {}
     }
@@ -445,10 +608,15 @@ function extractLastJsonObject(text: string): any | null {
   }
   if (startIdx < 0) return null;
 
+  const candidate = text.substring(startIdx, lastBrace + 1);
   try {
-    return JSON.parse(text.substring(startIdx, lastBrace + 1));
+    return JSON.parse(candidate);
   } catch {
-    return null;
+    try {
+      return JSON.parse(fixJsonString(candidate));
+    } catch {
+      return null;
+    }
   }
 }
 

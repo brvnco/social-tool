@@ -210,10 +210,63 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
       <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
         <h3 className="font-bold text-delta-text mb-4">Imagery Plan</h3>
         <div className="space-y-4 text-sm">
-          {imagery.use_mockup && (
+          {/* New format: hook_image */}
+          {imagery.hook_image && (
+            <div className={`rounded-2xl p-5 border ${
+              imagery.hook_image.type === 'mockup' ? 'gradient-purple border-purple-200 dark:border-purple-800' :
+              imagery.hook_image.type === 'delta_ui' ? 'gradient-green border-emerald-200 dark:border-emerald-800' :
+              'gradient-blue border-blue-200 dark:border-blue-800'
+            }`}>
+              <div className="flex items-center gap-2.5 mb-3">
+                <span className="material-symbols-outlined text-lg">
+                  {imagery.hook_image.type === 'mockup' ? 'smartphone' : imagery.hook_image.type === 'delta_ui' ? 'dashboard' : 'image'}
+                </span>
+                <span className="font-semibold">Hook Image (Slides 1–2) — {imagery.hook_image.type === 'delta_ui' ? 'Delta UI' : imagery.hook_image.type === 'mockup' ? 'Phone Mockup' : 'Visual'}</span>
+              </div>
+              <div className="space-y-2 ml-7">
+                <p className="text-delta-muted">{imagery.hook_image.description}</p>
+                {imagery.hook_image.delta_screen && (
+                  <div>
+                    <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium mb-0.5">Delta Screen</p>
+                    <p className="text-delta-text">{imagery.hook_image.delta_screen}</p>
+                  </div>
+                )}
+                {imagery.hook_image.mockup_prompt && (
+                  <div>
+                    <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium mb-0.5">Mockup Prompt</p>
+                    <p className="text-delta-muted italic">{imagery.hook_image.mockup_prompt}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+          {/* New format: slide_images */}
+          {imagery.slide_images?.length > 0 && imagery.slide_images.filter((si: any) => si.type !== 'none').map((si: any) => (
+            <div key={si.slide} className={`rounded-2xl p-5 border ${
+              si.type === 'mockup' ? 'gradient-purple border-purple-200 dark:border-purple-800' :
+              si.type === 'delta_screen' ? 'gradient-green border-emerald-200 dark:border-emerald-800' :
+              'gradient-blue border-blue-200 dark:border-blue-800'
+            }`}>
+              <div className="flex items-center gap-2.5 mb-2">
+                <span className="material-symbols-outlined text-lg">
+                  {si.type === 'mockup' ? 'smartphone' : si.type === 'delta_screen' ? 'dashboard' : 'image'}
+                </span>
+                <span className="font-semibold">Slide {si.slide} — {si.type === 'delta_screen' ? 'Delta Screen' : si.type === 'mockup' ? 'Phone Mockup' : 'Image'}</span>
+              </div>
+              <div className="ml-7 space-y-1">
+                <p className="text-delta-muted">{si.description}</p>
+                {si.delta_screen && (
+                  <p className="text-delta-text text-xs"><span className="text-delta-muted">Screen:</span> {si.delta_screen}</p>
+                )}
+              </div>
+            </div>
+          ))}
+          {/* Legacy format fallback */}
+          {!imagery.hook_image && imagery.use_mockup && (
             <div className="gradient-purple rounded-2xl p-5 border border-purple-200 dark:border-purple-800">
               <div className="flex items-center gap-2.5 mb-3">
-                <span className="text-lg">Phone Mockup (Weavy.ai)</span>
+                <span className="material-symbols-outlined text-lg">smartphone</span>
+                <span className="font-semibold">Phone Mockup (Weavy.ai)</span>
               </div>
               <div className="space-y-2 ml-7">
                 <div>
@@ -227,15 +280,16 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
               </div>
             </div>
           )}
-          {imagery.use_spanning_image && (
+          {!imagery.hook_image && imagery.use_spanning_image && (
             <div className="gradient-blue rounded-2xl p-5 border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2.5 mb-2">
-                <span className="text-lg">Spanning Image (Slides 1-2)</span>
+                <span className="material-symbols-outlined text-lg">image</span>
+                <span className="font-semibold">Spanning Image (Slides 1–2)</span>
               </div>
               <p className="text-delta-muted ml-7">{imagery.spanning_image_description}</p>
             </div>
           )}
-          {!imagery.use_spanning_image && !imagery.use_mockup && (
+          {!imagery.hook_image && !imagery.use_spanning_image && !imagery.use_mockup && !imagery.slide_images?.length && (
             <p className="text-delta-muted">No special imagery planned for this brief</p>
           )}
         </div>
@@ -311,7 +365,7 @@ export default function BriefReview({ run, onUpdate, onError, readOnly }: Props)
           <button
             onClick={approve}
             disabled={loading}
-            className="bg-delta-green text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+            className="bg-delta-green text-white dark:text-delta-bg font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
           >
             {loading ? 'Processing...' : 'Approve'}
           </button>

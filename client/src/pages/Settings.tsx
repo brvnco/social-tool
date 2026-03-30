@@ -135,7 +135,7 @@ export default function Settings() {
                   <p className="font-semibold text-delta-text">{label}</p>
                   <p className="text-xs text-delta-muted">\u2014 {desc}</p>
                   {modelSaved === phase && (
-                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium ml-auto">&check; Saved</span>
+                    <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium ml-auto inline-flex items-center gap-1"><span className="material-symbols-outlined text-sm">check</span> Saved</span>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -214,7 +214,7 @@ export default function Settings() {
           <button
             onClick={saveNodeMap}
             disabled={saving}
-            className="bg-delta-green text-white font-semibold px-5 py-2.5 rounded-xl text-sm hover:shadow-glow transition disabled:opacity-50"
+            className="bg-delta-green text-white dark:text-delta-bg font-semibold px-5 py-2.5 rounded-xl text-sm hover:shadow-glow transition disabled:opacity-50"
           >
             {saved ? '\u2713 Saved!' : saving ? 'Saving...' : 'Save'}
           </button>
@@ -266,13 +266,13 @@ export default function Settings() {
             rel="noopener noreferrer"
             className="text-delta-green hover:text-delta-green font-semibold inline-block mt-1 transition"
           >
-            Open in Figma &rarr;
+            Open in Figma <span className="material-symbols-outlined text-[1em] align-middle">arrow_forward</span>
           </a>
         </div>
         <div className="mt-4 p-4 bg-delta-subtle rounded-2xl border border-delta-border">
           <p className="text-xs text-delta-muted">
             <strong className="text-delta-text">How to get node IDs:</strong> Open the Figma file, select a text layer,
-            and check the URL &mdash; the node ID appears after <code className="bg-delta-card px-1 rounded">node-id=</code>. Replace the dash with a colon (e.g. <code className="bg-delta-card px-1 rounded">6-1095</code> &rarr; <code className="bg-delta-card px-1 rounded">6:1095</code>).
+            and check the URL — the node ID appears after <code className="bg-delta-card px-1 rounded">node-id=</code>. Replace the dash with a colon (e.g. <code className="bg-delta-card px-1 rounded">6-1095</code> → <code className="bg-delta-card px-1 rounded">6:1095</code>).
           </p>
         </div>
       </div>

@@ -87,6 +87,10 @@ input:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgb(var(--delta-accent) / 0.15);
 }
 
+input[type="checkbox"]:focus {
+  box-shadow: none;
+}
+
 /* Checkbox styling */
 input[type="checkbox"] {
   accent-color: rgb(var(--delta-accent));

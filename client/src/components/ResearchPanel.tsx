@@ -25,6 +25,12 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
   const logRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
 
+  // Stable refs so the EventSource doesn't reconnect on every parent render
+  const onCompleteRef = useRef(onComplete);
+  const onErrorRef = useRef(onError);
+  onCompleteRef.current = onComplete;
+  onErrorRef.current = onError;
+
   useEffect(() => {
     const es = new EventSource(`/api/research/${runId}/stream`);
     setConnected(true);
@@ -44,14 +50,14 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
         if (data.type === 'complete') {
           es.close();
           setConnected(false);
-          setTimeout(onComplete, 500);
+          setTimeout(() => onCompleteRef.current(), 500);
         }
 
         if (data.type === 'error') {
           setError(data.message);
           es.close();
           setConnected(false);
-          onError(data.message);
+          onErrorRef.current(data.message);
         }
       } catch {}
     };
@@ -61,7 +67,7 @@ export default function ResearchPanel({ runId, onComplete, onError }: Props) {
     };
 
     return () => es.close();
-  }, [runId, onComplete, onError]);
+  }, [runId]);
 
   useEffect(() => {
     if (textRef.current) {

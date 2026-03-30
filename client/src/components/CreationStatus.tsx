@@ -103,9 +103,9 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
               href={figmaUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-delta-green text-white font-semibold px-6 py-2.5 rounded-2xl hover:shadow-glow text-sm transition"
+              className="bg-delta-green text-white dark:text-delta-bg font-semibold px-6 py-2.5 rounded-2xl hover:shadow-glow text-sm transition"
             >
-              Open Figma &rarr;
+              Open Figma <span className="material-symbols-outlined text-[1em] align-middle">arrow_forward</span>
             </a>
           )}
         </div>
@@ -176,18 +176,73 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         })}
       </div>
 
-      {/* Weavy.ai Mockup Step */}
+      {/* Imagery Plan */}
       {run.visual_direction_json && (() => {
         const vd = JSON.parse(run.visual_direction_json || '{}');
         const imagery = vd.imagery || {};
 
+        // Helper to check if any imagery uses a mockup (new or old format)
+        const hasMockup = imagery.hook_image?.type === 'mockup' ||
+          imagery.slide_images?.some((si: any) => si.type === 'mockup') ||
+          imagery.use_mockup;
+        const mockupScreen = imagery.hook_image?.delta_screen ||
+          imagery.slide_images?.find((si: any) => si.type === 'mockup')?.delta_screen ||
+          imagery.mockup_screen;
+        const mockupPrompt = imagery.hook_image?.mockup_prompt ||
+          imagery.mockup_prompt;
+
         return (
           <>
-            {imagery.use_mockup && (
+            {/* Hook image (new format) */}
+            {imagery.hook_image && (
+              <div className={`bg-delta-card rounded-3xl shadow-card border p-5 ${
+                imagery.hook_image.type === 'mockup' ? 'border-purple-200 dark:border-purple-800' :
+                imagery.hook_image.type === 'delta_ui' ? 'border-emerald-200 dark:border-emerald-800' :
+                'border-delta-border'
+              }`}>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-lg">
+                    {imagery.hook_image.type === 'mockup' ? 'smartphone' : imagery.hook_image.type === 'delta_ui' ? 'dashboard' : 'image'}
+                  </span>
+                  <p className="font-bold text-sm text-delta-text">
+                    Hook Image (Slides 1–2) — {imagery.hook_image.type === 'delta_ui' ? 'Delta UI' : imagery.hook_image.type === 'mockup' ? 'Phone Mockup' : 'Visual'}
+                  </p>
+                </div>
+                <p className="text-sm text-delta-muted ml-8">{imagery.hook_image.description}</p>
+                {imagery.hook_image.delta_screen && (
+                  <p className="text-sm text-delta-text ml-8 mt-1"><span className="text-delta-muted">Screen:</span> {imagery.hook_image.delta_screen}</p>
+                )}
+              </div>
+            )}
+
+            {/* Slide images (new format) */}
+            {imagery.slide_images?.filter((si: any) => si.type !== 'none').map((si: any) => (
+              <div key={si.slide} className={`bg-delta-card rounded-3xl shadow-card border p-5 ${
+                si.type === 'mockup' ? 'border-purple-200 dark:border-purple-800' :
+                si.type === 'delta_screen' ? 'border-emerald-200 dark:border-emerald-800' :
+                'border-delta-border'
+              }`}>
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="material-symbols-outlined text-lg">
+                    {si.type === 'mockup' ? 'smartphone' : si.type === 'delta_screen' ? 'dashboard' : 'image'}
+                  </span>
+                  <p className="font-bold text-sm text-delta-text">
+                    Slide {si.slide} — {si.type === 'delta_screen' ? 'Delta Screen' : si.type === 'mockup' ? 'Phone Mockup' : 'Image'}
+                  </p>
+                </div>
+                <p className="text-sm text-delta-muted ml-8">{si.description}</p>
+                {si.delta_screen && (
+                  <p className="text-sm text-delta-text ml-8 mt-1"><span className="text-delta-muted">Screen:</span> {si.delta_screen}</p>
+                )}
+              </div>
+            ))}
+
+            {/* Weavy mockup workflow — shown if any imagery uses a mockup */}
+            {hasMockup && (
               <div className="bg-delta-card rounded-3xl shadow-card border border-purple-200 dark:border-purple-800 p-6">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="w-12 h-12 rounded-2xl bg-purple-50 dark:bg-purple-950 flex items-center justify-center text-xl">
-                    &#128241;
+                    <span className="material-symbols-outlined">smartphone</span>
                   </div>
                   <div>
                     <p className="font-bold text-delta-text">Weavy.ai Mockup</p>
@@ -196,34 +251,38 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                 </div>
 
                 <div className="space-y-3">
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 1 — Delta App Screen to Use</p>
-                      <button
-                        onClick={() => copyText(imagery.mockup_screen || '', 'mockup-screen')}
-                        className="text-[10px] text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
-                      >
-                        {copiedField === 'mockup-screen' ? '\u2713' : 'Copy'}
-                      </button>
+                  {mockupScreen && (
+                    <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 1 — Delta App Screen to Use</p>
+                        <button
+                          onClick={() => copyText(mockupScreen, 'mockup-screen')}
+                          className="text-[10px] text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+                        >
+                          {copiedField === 'mockup-screen' ? '\u2713' : 'Copy'}
+                        </button>
+                      </div>
+                      <p className="text-sm text-delta-text font-semibold">{mockupScreen}</p>
                     </div>
-                    <p className="text-sm text-delta-text font-semibold">{imagery.mockup_screen}</p>
-                  </div>
+                  )}
+
+                  {mockupPrompt && (
+                    <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">{mockupScreen ? 'Step 2' : 'Step 1'} — Weavy Mockup Generation Prompt</p>
+                        <button
+                          onClick={() => copyText(mockupPrompt, 'mockup-prompt')}
+                          className="text-[10px] text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
+                        >
+                          {copiedField === 'mockup-prompt' ? '\u2713' : 'Copy'}
+                        </button>
+                      </div>
+                      <p className="text-sm text-delta-muted italic">{mockupPrompt}</p>
+                    </div>
+                  )}
 
                   <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium">Step 2 — Weavy Mockup Generation Prompt</p>
-                      <button
-                        onClick={() => copyText(imagery.mockup_prompt || '', 'mockup-prompt')}
-                        className="text-[10px] text-purple-500 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
-                      >
-                        {copiedField === 'mockup-prompt' ? '\u2713' : 'Copy'}
-                      </button>
-                    </div>
-                    <p className="text-sm text-delta-muted italic">{imagery.mockup_prompt}</p>
-                  </div>
-
-                  <div className="gradient-purple rounded-2xl p-4 border border-purple-100 dark:border-purple-800">
-                    <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium mb-2">Step 3 — Generate in Weavy</p>
+                    <p className="text-[10px] text-delta-muted uppercase tracking-wider font-medium mb-2">{mockupScreen && mockupPrompt ? 'Step 3' : 'Step 2'} — Generate in Weavy</p>
                     <div className="flex items-center gap-3">
                       <a
                         href="https://weavy.ai"
@@ -231,20 +290,21 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
                         rel="noopener noreferrer"
                         className="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-5 py-2.5 rounded-xl text-sm hover:bg-purple-200 dark:hover:bg-purple-800 inline-flex items-center gap-2 font-semibold transition"
                       >
-                        Open Weavy.ai &rarr;
+                        Open Weavy.ai <span className="material-symbols-outlined text-[1em] align-middle">arrow_forward</span>
                       </a>
-                      <p className="text-xs text-delta-muted">Generate mockup &rarr; replace screen &rarr; download</p>
+                      <p className="text-xs text-delta-muted">Generate mockup → replace screen → download</p>
                     </div>
                   </div>
                 </div>
               </div>
             )}
 
-            {imagery.use_spanning_image && (
+            {/* Legacy spanning image fallback */}
+            {!imagery.hook_image && imagery.use_spanning_image && (
               <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-5">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-lg">&#128444;</span>
-                  <p className="font-bold text-sm text-delta-text">Spanning Image (Slides 1&ndash;2)</p>
+                  <span className="material-symbols-outlined text-lg">image</span>
+                  <p className="font-bold text-sm text-delta-text">Spanning Image (Slides 1–2)</p>
                 </div>
                 <p className="text-sm text-delta-muted ml-8">{imagery.spanning_image_description}</p>
               </div>
@@ -264,7 +324,7 @@ export default function CreationStatus({ runId, run, onComplete, onError }: Prop
         <button
           onClick={markReady}
           disabled={markingReady}
-          className="bg-delta-green text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+          className="bg-delta-green text-white dark:text-delta-bg font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
         >
           {markingReady ? 'Exporting...' : 'Mark as Ready'}
         </button>

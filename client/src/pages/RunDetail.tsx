@@ -63,7 +63,7 @@ export default function RunDetail() {
   const [proposing, setProposing] = useState(false);
 
   const fetchRun = useCallback(() => {
-    fetch(`/api/runs/${id}`).then(r => r.json()).then((data: Run) => {
+    return fetch(`/api/runs/${id}`).then(r => r.json()).then((data: Run) => {
       setRun(data);
       if (viewStep === null) {
         setViewStep(getStepIndex(data.status));
@@ -71,6 +71,7 @@ export default function RunDetail() {
       if (data.status === 'error') {
         setStepErrors(prev => ({ ...prev, researching: 'Failed. Check server logs.' }));
       }
+      return data;
     });
   }, [id, viewStep]);
 
@@ -142,7 +143,7 @@ export default function RunDetail() {
         }`}>
           <div className="flex items-center gap-3">
             <span>{toast.msg}</span>
-            <button onClick={() => setToast(null)} className="opacity-50 hover:opacity-100 text-lg leading-none">&times;</button>
+            <button onClick={() => setToast(null)} className="opacity-50 hover:opacity-100 leading-none"><span className="material-symbols-outlined text-lg">close</span></button>
           </div>
         </div>
       )}
@@ -218,7 +219,7 @@ export default function RunDetail() {
               <p className="text-red-700 dark:text-red-300 font-semibold text-sm">Error on this step</p>
               <p className="text-red-600/70 dark:text-red-400/70 text-sm mt-1">{stepErrors[activeStepKey]}</p>
             </div>
-            <button onClick={() => clearStepError(activeStepKey)} className="text-red-400 hover:text-red-600 shrink-0 text-lg">&times;</button>
+            <button onClick={() => clearStepError(activeStepKey)} className="text-red-400 hover:text-red-600 shrink-0"><span className="material-symbols-outlined text-lg">close</span></button>
           </div>
         )}
 
@@ -234,7 +235,7 @@ export default function RunDetail() {
                 <button
                   onClick={startPropose}
                   disabled={proposing}
-                  className="bg-delta-accent text-white font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+                  className="bg-delta-green text-white dark:text-delta-bg font-semibold px-7 py-3 rounded-2xl hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
                 >
                   {proposing ? 'Generating...' : run.status === 'error' ? 'Retry' : 'Propose Directions'}
                 </button>
@@ -275,7 +276,7 @@ export default function RunDetail() {
             {run.status === 'briefing' ? (
               <ResearchPanel
                 runId={run.id}
-                onComplete={() => { clearStepError('briefing'); fetchRun(); setViewStep(3); }}
+                onComplete={() => { clearStepError('briefing'); fetchRun().then(() => setViewStep(3)); }}
                 onError={(msg) => recordStepError('briefing', msg)}
               />
             ) : getStepIndex(run.status) > 2 ? (
@@ -371,7 +372,7 @@ function StepNotReady({ label }: { label: string }) {
   return (
     <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-10 text-center">
       <div className="w-12 h-12 rounded-2xl bg-delta-subtle mx-auto flex items-center justify-center mb-3">
-        <span className="text-delta-muted text-xl">&#9203;</span>
+        <span className="material-symbols-outlined text-delta-muted text-xl">hourglass</span>
       </div>
       <p className="text-delta-muted font-medium">{label} — not reached yet</p>
       <p className="text-delta-muted/60 text-sm mt-1">Complete the previous steps first.</p>
@@ -384,7 +385,7 @@ function StepSummary({ title, details }: { title: string; details: { label: stri
     <div className="bg-delta-card rounded-3xl shadow-card border border-delta-border p-6">
       <div className="flex items-center gap-2 mb-4">
         <div className="w-6 h-6 rounded-lg bg-emerald-100 dark:bg-emerald-900 flex items-center justify-center">
-          <span className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">&check;</span>
+          <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-sm">check</span>
         </div>
         <h2 className="font-bold text-delta-text">{title}</h2>
       </div>

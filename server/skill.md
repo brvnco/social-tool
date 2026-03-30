@@ -42,7 +42,7 @@ Return ONLY this JSON object, no other text:
   "flagged": false,
   "flagged_reason": null,
   "slides": [
-    {"title": "Hook (max 8 words)", "subtitle": "One punchy line", "description": "1-2 short sentences max", "swipe_cta": "Swipe to find out →"},
+    {"title": "Hook (max 8 words)", "subtitle": "One punchy line", "description": "1-2 short sentences max", "swipe_cta": "Swipe to find out"},
     {"title": "Slide 2 title", "description": "1-2 short sentences max"},
     {"title": "Slide 3 title", "description": "1-2 short sentences max"},
     {"title": "Slide 4 title", "description": "1-2 short sentences max"},
@@ -50,11 +50,20 @@ Return ONLY this JSON object, no other text:
     {"cta": "Bold CTA (max 6 words)"}
   ],
   "imagery": {
-    "use_spanning_image": false,
-    "spanning_image_description": "what the image should show across slides 1-2, or null",
-    "use_mockup": true,
-    "mockup_screen": "exact Delta screen name from the list above",
-    "mockup_prompt": "A 3D render prompt for Weavy.ai mockup generation: describe a scene with a floating phone in a fitting environment. E.g. 'Floating phone in a space environment, soft green light, shallow depth of field'. Keep it abstract and aspirational. The phone screen will be replaced with the Delta app screen automatically."
+    "hook_image": {
+      "type": "delta_ui|visual|mockup",
+      "description": "What the hook image should show. This spans slides 1-2 and is the eyecatcher.",
+      "delta_screen": "exact Delta screen/UI element name if type is delta_ui or mockup, null otherwise",
+      "mockup_prompt": "If type is mockup: a 3D render prompt for Weavy.ai. Describe a scene with a floating phone in a fitting environment. E.g. 'Floating phone in a space environment, soft green light, shallow depth of field'. Keep abstract and aspirational. Null if not mockup."
+    },
+    "slide_images": [
+      {
+        "slide": 2,
+        "type": "delta_screen|mockup|image|none",
+        "description": "What to show and why it adds value. Null if none.",
+        "delta_screen": "exact Delta screen name if relevant, null otherwise"
+      }
+    ]
   },
   "instagram_caption": "Caption with hashtags",
   "linkedin_caption": "Professional post, 2 short paragraphs max",
@@ -64,10 +73,20 @@ Return ONLY this JSON object, no other text:
 
 ## Imagery Rules
 
-- **use_mockup**: set to true when a Delta feature CTA benefits from showing the app. Pick the exact screen from the list above.
-- **mockup_prompt**: A 3D render prompt for Weavy.ai mockup generation: describe a scene with a floating phone in a fitting environment. E.g. 'Floating phone in a space environment, soft green light, shallow depth of field'. Keep it abstract and aspirational. The phone screen will be replaced with the Delta app screen automatically.
-- **use_spanning_image**: set to true when a strong visual concept would make the viewer want to swipe from slide 1 to 2. Describe what it shows.
-- You can use both a spanning image AND a mockup in the same brief.
+### Hook image (slide 1-2, spanning)
+The hook image spans slides 1 and 2 and is the eyecatcher. Pick ONE of these three types:
+- **delta_ui**: A specific Delta UI element or screen cropped/highlighted as a visual. Best when the topic directly relates to a Delta feature. Set `delta_screen` to the exact screen name.
+- **visual**: An eyecatching photo/illustration relevant to the subject (e.g. a stock exchange floor for market volatility, gold bars for commodities). Describe what the image should depict.
+- **mockup**: A Delta app screen shown inside a phone mockup in a 3D scene. Use when you want to showcase the app in context. Set `delta_screen` to the screen to display, and `mockup_prompt` to a Weavy.ai 3D render prompt (floating phone in a fitting environment, abstract and aspirational).
+
+### Slide images (slides 2-5)
+For each of slides 2 through 5, decide if an image adds value. Include an entry in `slide_images` only for slides that benefit from one. Options:
+- **delta_screen**: A specific Delta app screen that illustrates the slide's point (e.g. showing the "Top Gainers" screen when discussing sector performance). Set `delta_screen` to the exact name.
+- **mockup**: Same as hook mockup but for an inner slide. Use sparingly.
+- **image**: A standalone visual (photo, chart, illustration). Describe what it should show.
+- **none**: No image needed — skip this slide in the array.
+
+Not every slide needs an image. Only include them when they genuinely support the content.
 
 ## Writing Rules — STRICT
 

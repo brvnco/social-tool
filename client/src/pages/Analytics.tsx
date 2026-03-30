@@ -49,7 +49,7 @@ export default function Analytics() {
       ) : (
         <div className="text-center py-24 text-delta-muted">
           <div className="w-16 h-16 rounded-3xl bg-delta-subtle mx-auto flex items-center justify-center mb-4">
-            <span className="text-3xl opacity-40">&#128202;</span>
+            <span className="material-symbols-outlined text-3xl opacity-40">bar_chart</span>
           </div>
           <p className="text-lg font-medium">No completed runs with analytics data yet</p>
         </div>

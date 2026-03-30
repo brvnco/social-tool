@@ -64,7 +64,7 @@ export default function Dashboard() {
         <button
           onClick={startRun}
           disabled={creating}
-          className="bg-delta-green text-white font-semibold px-6 py-3 rounded-2xl shadow-card hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
+          className="bg-delta-green text-white dark:text-delta-bg font-semibold px-6 py-3 rounded-2xl shadow-card hover:shadow-glow hover:scale-[1.02] transition-all disabled:opacity-50"
         >
           {creating ? 'Starting...' : '+ Run this week'}
         </button>
